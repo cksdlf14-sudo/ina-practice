@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="이나 연습">
+<meta name="theme-color" content="#1a0533">
+<title>대사 연습 🎭</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;background:linear-gradient(160deg,#1a0533 0%,#0d1b4b 60%,#0a2a1a 100%);font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;color:#fff;display:flex;flex-direction:column;align-items:center}
+#header{width:100%;padding:16px 20px 12px;background:rgba(255,255,255,0.04);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.htitle{flex:1}.htitle h1{font-size:17px;font-weight:900}.htitle p{font-size:11px;opacity:0.5;margin-top:2px}
+#main{width:100%;max-width:460px;padding:20px 18px 80px;flex:1}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;color:#fff;cursor:pointer;transition:transform .08s,opacity .08s;-webkit-user-select:none;user-select:none}
+.btn:active{transform:scale(.94);opacity:.75}
+.btn-primary{background:linear-gradient(135deg,#a78bfa,#60a5fa);box-shadow:0 4px 20px rgba(167,139,250,.35);font-size:18px;font-weight:900;padding:16px}
+.btn-blue{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.25)!important;color:#93c5fd}
+.btn-blue.active{background:rgba(96,165,250,.22);border-color:rgba(96,165,250,.5)!important}
+.btn-purple{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3)!important;color:#c4b5fd}
+.btn-purple.active{background:rgba(167,139,250,.25);border-color:rgba(167,139,250,.6)!important}
+.btn-reveal{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3)!important;color:#c4b5fd}
+.btn-green{background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 2px 14px rgba(16,185,129,.3)}
+.btn-red{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3)!important;color:#fca5a5}
+.btn-dim{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15)!important;color:#ccc}
+.btn-reset{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15)!important;color:#ccc;border-radius:20px;padding:5px 14px;font-size:12px;width:auto}
+.row{display:flex;gap:10px}.row .btn{flex:1}
+.gap{margin-bottom:10px}
+.prog-wrap{height:6px;background:rgba(255,255,255,.1);border-radius:10px;margin-bottom:8px}
+.prog-bar{height:100%;border-radius:10px;background:linear-gradient(90deg,#a78bfa,#60a5fa);transition:width .4s}
+.dots{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px}
+.dot{width:10px;height:10px;border-radius:50%;transition:background .2s}
+.prev-card{background:rgba(255,255,255,.03);border-radius:14px;padding:12px 16px;margin-bottom:14px;border:1px solid rgba(255,255,255,.06);transition:border .3s}
+.prev-card.playing{border-color:rgba(96,165,250,.35)}
+.prev-label{opacity:.4;font-size:11px;margin-bottom:6px}
+.prev-line{font-size:13px;line-height:2;margin-bottom:1px}
+.p-done{color:rgba(96,165,250,.5)}.p-active{color:#fff;font-weight:900;font-size:16px}.p-wait{color:rgba(255,255,255,.2)}
+.pl-done{color:rgba(96,165,250,.45)}.pl-wait{opacity:.3}
+.cur-card{border-radius:18px;padding:24px 20px;margin-bottom:18px;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transition:all .3s;background:rgba(255,255,255,.04);border:2px dashed rgba(255,255,255,.2)}
+.cur-card.revealed{background:rgba(167,139,250,.12);border:2px solid rgba(167,139,250,.4)}
+.cur-emoji{font-size:28px;margin-bottom:10px}
+.cur-text{font-size:20px;font-weight:700;line-height:1.8;color:#e9d5ff}
+.cur-blank{opacity:.18;font-size:26px;letter-spacing:6px;margin-bottom:8px}
+.cur-hint{opacity:.4;font-size:13px}
+.prog-info{display:flex;justify-content:space-between;font-size:12px;opacity:.6;margin-bottom:5px}
+#tts-badge{display:none;align-items:center;gap:6px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:20px;padding:6px 14px;font-size:12px;color:#c4b5fd;margin-bottom:10px}
+#tts-badge.show{display:flex}
+.wave{display:flex;gap:2px;align-items:center}
+.wave span{display:block;width:3px;background:#a78bfa;border-radius:2px;animation:wave .8s ease-in-out infinite}
+.wave span:nth-child(1){height:8px;animation-delay:0s}.wave span:nth-child(2){height:14px;animation-delay:.15s}.wave span:nth-child(3){height:10px;animation-delay:.3s}.wave span:nth-child(4){height:16px;animation-delay:.1s}.wave span:nth-child(5){height:8px;animation-delay:.25s}
+@keyframes wave{0%,100%{transform:scaleY(.5)}50%{transform:scaleY(1.3)}}
+
+/* HOME 화면 */
+.home-wrap{padding-top:10px}
+.home-title{font-size:22px;font-weight:900;margin-bottom:4px}
+.home-sub{opacity:.5;font-size:13px;margin-bottom:24px}
+.script-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.script-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.script-item:active{transform:scale(.97);background:rgba(167,139,250,.15)}
+.script-item .si-icon{font-size:28px}
+.script-item .si-info{flex:1}
+.script-item .si-title{font-weight:700;font-size:15px;margin-bottom:2px}
+.script-item .si-count{font-size:12px;opacity:.5}
+.script-item .si-del{background:none;border:none;color:rgba(255,100,100,.6);font-size:18px;cursor:pointer;padding:4px 8px;border-radius:8px}
+.script-item .si-del:active{background:rgba(255,100,100,.15)}
+.scan-btn{background:linear-gradient(135deg,rgba(167,139,250,.2),rgba(96,165,250,.2));border:2px dashed rgba(167,139,250,.4);border-radius:16px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;width:100%}
+.scan-btn:active{transform:scale(.97);opacity:.8}
+.scan-btn .sb-icon{font-size:36px;margin-bottom:8px}
+.scan-btn .sb-title{font-weight:700;font-size:16px;color:#c4b5fd}
+.scan-btn .sb-desc{font-size:12px;opacity:.5;margin-top:3px}
+
+/* 스캔 화면 */
+.scan-wrap{text-align:center}
+.scan-preview{width:100%;max-height:280px;object-fit:contain;border-radius:14px;margin-bottom:16px;display:none}
+.scan-placeholder{background:rgba(255,255,255,.04);border:2px dashed rgba(255,255,255,.15);border-radius:14px;padding:40px 20px;margin-bottom:16px;cursor:pointer}
+.scan-placeholder .sp-icon{font-size:48px;margin-bottom:10px}
+.scan-placeholder .sp-text{font-weight:700;font-size:16px;margin-bottom:4px}
+.scan-placeholder .sp-sub{opacity:.5;font-size:13px}
+.scan-loading{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:24px;margin-bottom:16px;display:none}
+.scan-loading .sl-icon{font-size:36px;margin-bottom:8px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scan-loading .sl-text{font-weight:700;opacity:.8}
+.scan-result{background:rgba(255,255,255,.05);border-radius:14px;padding:16px;margin-bottom:16px;display:none;text-align:left}
+.sr-label{opacity:.5;font-size:12px;margin-bottom:10px}
+.sr-line{padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px;line-height:1.6;display:flex;gap:10px}
+.sr-line:last-child{border-bottom:none}
+.sr-num{opacity:.3;font-size:12px;min-width:18px}
+.scan-name-wrap{margin-bottom:16px;display:none}
+.scan-name-label{font-size:13px;opacity:.6;margin-bottom:6px}
+.scan-name-input{width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:15px;font-family:inherit;outline:none}
+.scan-name-input:focus{border-color:rgba(167,139,250,.5)}
+.scan-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:12px;color:#fca5a5;font-size:13px;margin-bottom:14px;display:none}
+
+/* 연습 화면 */
+.mode-wrap{margin-bottom:16px}
+.mode-label{font-weight:700;font-size:15px;margin-bottom:10px}
+.mode-row{display:flex;gap:10px}
+.mode-btn{flex:1;padding:14px 10px;background:rgba(255,255,255,.05);border:2px solid transparent!important;border-radius:14px;color:#fff;cursor:pointer;text-align:center;transition:background .15s;font-family:inherit}
+.mode-btn:active{transform:scale(.94);opacity:.75}
+.mode-btn.selected{background:rgba(167,139,250,.2);border-color:rgba(167,139,250,.6)!important}
+.mode-btn-title{font-weight:700;font-size:14px}
+.mode-btn-desc{opacity:.5;font-size:11px;margin-top:3px}
+.done-wrap{text-align:center;padding-top:10px}
+.done-trophy{font-size:70px;margin-bottom:12px}
+.done-title{font-weight:900;font-size:28px;margin-bottom:6px}
+.done-sub{opacity:.6;font-size:15px;margin-bottom:24px}
+.done-card{background:rgba(255,255,255,.05);border-radius:20px;padding:24px;margin-bottom:20px;border:1px solid rgba(255,255,255,.08)}
+.done-score{font-size:52px;font-weight:900;color:#a78bfa}
+.done-score-sub{opacity:.5;margin-top:4px;margin-bottom:16px;font-size:14px}
+.done-pct{font-weight:900;font-size:22px;margin-top:10px;color:#e9d5ff}
+.result-item{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;line-height:1.5}
+.result-item:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+<div id="header">
+  <span style="font-size:24px">🎭</span>
+  <div class="htitle">
+    <h1 id="header-title">대사 연습</h1>
+    <p id="header-sub">대본을 찍어서 연습해요</p>
+  </div>
+  <button class="btn btn-reset" id="btn-back" style="display:none" onclick="goBack()">← 뒤로</button>
+</div>
+
+<div id="main">
+
+  <!-- ── HOME ── -->
+  <div id="screen-home">
+    <div class="home-wrap">
+      <div class="home-title">📚 내 대본</div>
+      <div class="home-sub">연습할 대본을 선택하세요</div>
+      <div class="script-list" id="script-list"></div>
+      <button class="scan-btn" onclick="goScan()">
+        <div class="sb-icon">📸</div>
+        <div class="sb-title">새 대본 추가</div>
+        <div class="sb-desc">사진 찍으면 AI가 대사를 읽어드려요</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── SCAN ── -->
+  <div id="screen-scan" style="display:none">
+    <div class="scan-wrap">
+      <img id="scan-preview" class="scan-preview">
+      <div class="scan-placeholder" id="scan-placeholder" onclick="document.getElementById('file-input').click()">
+        <div class="sp-icon">📷</div>
+        <div class="sp-text">대본 사진 찍기</div>
+        <div class="sp-sub">갤러리에서 선택도 가능해요</div>
+      </div>
+      <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none" onchange="onFile(this)">
+      <div class="scan-loading" id="scan-loading">
+        <div class="sl-icon">🤖</div>
+        <div class="sl-text">AI가 대사를 분석 중이에요...</div>
+      </div>
+      <div class="scan-err" id="scan-err"></div>
+      <div class="scan-result" id="scan-result">
+        <div class="sr-label">📋 인식된 대사 확인</div>
+        <div id="sr-lines"></div>
+      </div>
+      <div class="scan-name-wrap" id="scan-name-wrap">
+        <div class="scan-name-label">대본 이름을 입력하세요</div>
+        <input class="scan-name-input" id="scan-name" type="text" placeholder="예) 이나 - 엄마 꿈 이야기">
+      </div>
+      <div id="scan-btns" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+  </div>
+
+  <!-- ── SETUP (모드 선택) ── -->
+  <div id="screen-setup" style="display:none">
+    <div style="background:rgba(255,255,255,.05);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,.08)">
+      <div style="opacity:.5;font-size:12px;margin-bottom:10px">📜 대본 미리보기</div>
+      <div id="setup-preview"></div>
+    </div>
+    <div class="mode-wrap">
+      <div class="mode-label">연습 모드 선택</div>
+      <div class="mode-row">
+        <div class="mode-btn selected" id="mode-blank" onclick="setMode('blank')">
+          <div class="mode-btn-title">🙈 빈칸 채우기</div>
+          <div class="mode-btn-desc">대사 숨기고 맞혀보기</div>
+        </div>
+        <div class="mode-btn" id="mode-listen" onclick="setMode('listen')">
+          <div class="mode-btn-title">🔊 듣고 따라하기</div>
+          <div class="mode-btn-desc">읽어주면 따라 말하기</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="startPractice()">🎬 연습 시작!</button>
+  </div>
+
+  <!-- ── PRACTICE ── -->
+  <div id="screen-practice" style="display:none">
+    <div class="prog-info">
+      <span id="prog-text">문장 1 / 10</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="prog-wrap"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
+    <div class="dots" id="dots"></div>
+    <div id="tts-badge">
+      <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+      <span id="tts-text">읽는 중...</span>
+    </div>
+    <div class="prev-card" id="prev-card" style="display:none">
+      <div class="prev-label">앞 대사</div>
+      <div id="prev-lines"></div>
+    </div>
+    <div class="cur-card" id="cur-card">
+      <div class="cur-emoji" id="cur-emoji"></div>
+      <div id="cur-content"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px" id="btn-area"></div>
+  </div>
+
+  <!-- ── DONE ── -->
+  <div id="screen-done" style="display:none">
+    <div class="done-wrap">
+      <div class="done-trophy" id="done-trophy"></div>
+      <div class="done-title">연습 완료!</div>
+      <div class="done-sub" id="done-sub">수고했어요 🎭</div>
+      <div class="done-card">
+        <div class="done-score" id="done-score"></div>
+        <div class="done-score-sub">문장 외움</div>
+        <div class="prog-wrap" style="height:10px"><div class="prog-bar" id="done-bar"></div></div>
+        <div class="done-pct" id="done-pct"></div>
+        <div id="result-list" style="margin-top:16px;text-align:left"></div>
+      </div>
+      <div class="row">
+        <button class="btn btn-primary" onclick="restart()">🔁 한번 더!</button>
+        <button class="btn btn-dim" onclick="goHome()">🏠 홈으로</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const EMOJIS=["😔","😟","🐻","🙈","😲","🦒","😱","😰","🍬","🍪","🌟","💫","🎪","🎨","🌈","🦋","🐝","🍀","⭐","🎯"];
+
+// 상태
+let scripts = JSON.parse(localStorage.getItem('scripts')||'[]');
+// 기본 대본 (이나꺼)
+if(!scripts.find(s=>s.id==='default')){
+  scripts.unshift({id:'default',name:'이나 - 엄마 꿈 이야기',lines:["엄마 미안해..","엄마 말을 안들어서 나쁜 꿈을 꾼 것 같아","날개 달린 곰이 사탕을 줬는데","못먹게 할까봐 엄마한테 비밀로 하고 숨겼어","그러더니 사탕이 곰만큼 커지고","기린만큼 길어지고 공룡만큼 커졌어!","도망가려고 했는데 몸이 안 움직였어!","무서워서 엄마!!�마!! 하고 불렀더니 깼어","앞으로는 사탕 안먹을래. 사탕 싫어!","이제부터는 과자만 먹을거야!"]});
+  saveScripts();
+}
+
+let curScript=null, mode='blank', current=0, results=[], revealed=false;
+let prevTimer=null,pLineIdx=-1,pCharIdx=-1,pPlaying=false;
+let ttsPlaying=false,curAudio=null;
+let scannedLines=[], scanImgB64=null, scanMime=null;
+
+function saveScripts(){localStorage.setItem('scripts',JSON.stringify(scripts));}
+function haptic(t){if(!navigator.vibrate)return;if(t==='light')navigator.vibrate(30);else if(t==='medium')navigator.vibrate(60);else if(t==='success')navigator.vibrate([40,30,40]);else if(t==='error')navigator.vibrate([80,40,80]);}
+
+// ── 화면 전환 ──
+function show(s,title,sub,backBtn){
+  ['home','scan','setup','practice','done'].forEach(x=>document.getElementById('screen-'+x).style.display='none');
+  document.getElementById('screen-'+s).style.display='block';
+  document.getElementById('header-title').textContent=title||'대사 연습';
+  document.getElementById('header-sub').textContent=sub||'대본을 찍어서 연습해요';
+  document.getElementById('btn-back').style.display=backBtn?'block':'none';
+}
+
+function goBack(){
+  haptic('light');ttsStop();stopPrev();
+  const s=document.getElementById('screen-practice').style.display;
+  if(s!=='none'){show('setup',curScript?curScript.name:'연습 설정','모드를 선택하세요',true);}
+  else{goHome();}
+}
+
+function goHome(){
+  haptic('light');ttsStop();stopPrev();curScript=null;
+  renderHome();show('home');
+}
+
+// ── HOME ──
+function renderHome(){
+  const el=document.getElementById('script-list');
+  if(!scripts.length){el.innerHTML='<div style="opacity:.4;text-align:center;padding:20px;font-size:14px">저장된 대본이 없어요</div>';return;}
+  el.innerHTML=scripts.map((s,i)=>`
+    <div class="script-item" onclick="selectScript('${s.id}')">
+      <div class="si-icon">${EMOJIS[i%EMOJIS.length]}</div>
+      <div class="si-info">
+        <div class="si-title">${s.name}</div>
+        <div class="si-count">대사 ${s.lines.length}개</div>
+      </div>
+      <button class="si-del" onclick="event.stopPropagation();delScript('${s.id}')">🗑</button>
+    </div>`).join('');
+}
+
+function selectScript(id){
+  haptic('medium');
+  curScript=scripts.find(s=>s.id===id);
+  if(!curScript)return;
+  renderSetup();
+  show('setup',curScript.name,'모드를 선택하세요',true);
+}
+
+function delScript(id){
+  if(!confirm('이 대본을 삭제할까요?'))return;
+  haptic('medium');
+  scripts=scripts.filter(s=>s.id!==id);
+  saveScripts();renderHome();
+}
+
+function goScan(){
+  haptic('medium');
+  scannedLines=[];scanImgB64=null;scanMime=null;
+  document.getElementById('scan-preview').style.display='none';
+  document.getElementById('scan-placeholder').style.display='block';
+  document.getElementById('scan-loading').style.display='none';
+  document.getElementById('scan-err').style.display='none';
+  document.getElementById('scan-result').style.display='none';
+  document.getElementById('scan-name-wrap').style.display='none';
+  document.getElementById('scan-btns').innerHTML='';
+  document.getElementById('file-input').value='';
+  show('scan','새 대본 추가','대본 사진을 찍어주세요',true);
+}
+
+// ── SCAN / AI 추출 ──
+function onFile(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async(e)=>{
+    scanImgB64=e.target.result.split(',')[1];
+    scanMime=file.type;
+    const prev=document.getElementById('scan-preview');
+    prev.src=e.target.result;prev.style.display='block';
+    document.getElementById('scan-placeholder').style.display='none';
+    document.getElementById('scan-loading').style.display='block';
+    document.getElementById('scan-err').style.display='none';
+    document.getElementById('scan-result').style.display='none';
+    document.getElementById('scan-name-wrap').style.display='none';
+    document.getElementById('scan-btns').innerHTML='';
+    try{
+      const lines=await extractLines(scanImgB64,scanMime);
+      scannedLines=lines;
+      document.getElementById('scan-loading').style.display='none';
+      if(!lines.length)throw new Error('대사를 찾지 못했어요. 더 선명하게 찍어보세요!');
+      // 결과 표시
+      document.getElementById('sr-lines').innerHTML=lines.map((l,i)=>`<div class="sr-line"><span class="sr-num">${i+1}</span><span>${l}</span></div>`).join('');
+      document.getElementById('scan-result').style.display='block';
+      document.getElementById('scan-name-wrap').style.display='block';
+      document.getElementById('scan-name').value='';
+      document.getElementById('scan-btns').innerHTML=`
+        <button class="btn btn-primary" onclick="saveScanned()">✅ 저장하고 연습하기</button>
+        <button class="btn btn-dim gap" onclick="document.getElementById('file-input').click()">📸 다시 찍기</button>`;
+    }catch(err){
+      document.getElementById('scan-loading').style.display='none';
+      document.getElementById('scan-err').textContent='❌ '+err.message;
+      document.getElementById('scan-err').style.display='block';
+      document.getElementById('scan-btns').innerHTML=`<button class="btn btn-dim" onclick="document.getElementById('file-input').click()">📸 다시 찍기</button>`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function extractLines(b64,mime){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':'','anthropic-version':'2023-06-01'},
+    body:JSON.stringify({
+      model:'claude-opus-4-5',
+      max_tokens:1000,
+      system:'You are a script parser. Extract ALL dialogue lines from the image as a JSON array of strings. Return ONLY the JSON array, no markdown, no explanation. Example: ["첫번째 대사","두번째 대사"]',
+      messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:mime,data:b64}},
+        {type:'text',text:'이 대본 이미지에서 대사를 모두 추출해서 JSON 배열로만 응답하세요.'}
+      ]}]
+    })
+  });
+  if(!res.ok)throw new Error('AI 오류 '+res.status);
+  const data=await res.json();
+  const text=data.content?.find(b=>b.type==='text')?.text||'[]';
+  const clean=text.replace(/```json|```/g,'').trim();
+  const arr=JSON.parse(clean);
+  if(!Array.isArray(arr)||!arr.length)throw new Error('대사를 찾지 못했어요');
+  return arr;
+}
+
+function saveScanned(){
+  if(!scannedLines.length){alert('대사가 없어요!');return;}
+  const name=document.getElementById('scan-name').value.trim()||('대본 '+(scripts.length+1));
+  const id='s_'+Date.now();
+  scripts.push({id,name,lines:scannedLines});
+  saveScripts();haptic('success');
+  curScript=scripts.find(s=>s.id===id);
+  renderSetup();
+  show('setup',curScript.name,'모드를 선택하세요',true);
+}
+
+// ── SETUP ──
+function renderSetup(){
+  if(!curScript)return;
+  document.getElementById('setup-preview').innerHTML=curScript.lines.map((l,i)=>`<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;line-height:1.6;display:flex;gap:10px"><span style="opacity:.3;font-size:12px;min-width:18px">${i+1}</span><span>${l}</span></div>`).join('');
+}
+
+function setMode(m){
+  mode=m;haptic('light');
+  document.getElementById('mode-blank').className='mode-btn'+(m==='blank'?' selected':'');
+  document.getElementById('mode-listen').className='mode-btn'+(m==='listen'?' selected':'');
+}
+
+function startPractice(){
+  if(!curScript)return;
+  haptic('medium');current=0;results=[];revealed=false;
+  show('practice',curScript.name,'열심히 해보자! 💪',true);
+  renderAll();
+}
+
+function restart(){haptic('medium');current=0;results=[];revealed=false;show('practice',curScript.name,'열심히 해보자! 💪',true);renderAll();}
+
+// ── TTS ──
+function ttsStop(){
+  if(curAudio){curAudio.pause();curAudio=null;}
+  if(window.speechSynthesis)window.speechSynthesis.cancel();
+  ttsPlaying=false;
+  document.getElementById('tts-badge').className='tts-badge';
+}
+function showBadge(show,txt){
+  const b=document.getElementById('tts-badge');
+  if(show){b.className='tts-badge show';document.getElementById('tts-text').textContent=txt||'읽는 중...';}
+  else b.className='tts-badge';
+}
+async function ttsSpeak(text,onEnd){
+  ttsStop();showBadge(true,'읽는 중...');ttsPlaying=true;
+  if(!window.speechSynthesis){ttsPlaying=false;showBadge(false);if(onEnd)onEnd();return;}
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='ko-KR';u.rate=0.88;u.pitch=1.1;
+  const v=window.speechSynthesis.getVoices().find(x=>x.lang.startsWith('ko'))||null;
+  if(v)u.voice=v;
+  u.onend=()=>{ttsPlaying=false;showBadge(false);if(onEnd)onEnd();renderBtns();};
+  u.onerror=()=>{ttsPlaying=false;showBadge(false);renderBtns();};
+  setTimeout(()=>window.speechSynthesis.speak(u),80);
+  renderBtns();
+}
+
+// ── Prev karaoke ──
+function stopPrev(){
+  clearInterval(prevTimer);pPlaying=false;pLineIdx=-1;pCharIdx=-1;
+  ttsStop();renderPrev();
+}
+function playPrev(){
+  if(!curScript||current===0)return;
+  pPlaying=true;pLineIdx=0;pCharIdx=-1;haptic('medium');
+  const pl=curScript.lines.slice(0,current);
+  ttsSpeak(pl.join('. '));
+  let li=0,ci=0;
+  const tick=()=>{
+    pCharIdx=ci;ci++;renderPrev();
+    if(ci>=pl[li].length){clearInterval(prevTimer);setTimeout(()=>{li++;ci=0;if(li>=pl.length){stopPrev();return;}pLineIdx=li;pCharIdx=-1;prevTimer=setInterval(tick,155);},400);}
+  };
+  prevTimer=setInterval(tick,155);
+}
+function renderPrev(){
+  const el=document.getElementById('prev-lines');if(!el||!curScript)return;
+  const pl=curScript.lines.slice(0,current);
+  el.innerHTML=pl.map((l,i)=>{
+    if(pLineIdx===i)return'<div class="prev-line">'+l.split('').map((ch,ci)=>'<span class="'+(ci<pCharIdx?'p-done':ci===pCharIdx?'p-active':'p-wait')+'">'+ch+'</span>').join('')+'</div>';
+    else if(pLineIdx>i)return'<div class="prev-line pl-done">'+l+'</div>';
+    else return'<div class="prev-line pl-wait">'+l+'</div>';
+  }).join('');
+  document.getElementById('prev-card').className='prev-card'+(pPlaying?' playing':'');
+}
+function speakCurrent(){
+  if(!curScript)return;
+  if(ttsPlaying){ttsStop();renderBtns();return;}
+  haptic('medium');ttsSpeak(curScript.lines[current],()=>renderBtns());renderBtns();
+}
+
+// ── Practice render ──
+function renderAll(){
+  if(!curScript)return;
+  const LINES=curScript.lines,total=LINES.length,pct=Math.round((current/total)*100);
+  document.getElementById('prog-text').textContent='문장 '+(current+1)+' / '+total;
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-bar').style.width=pct+'%';
+  document.getElementById('dots').innerHTML=LINES.map((_,i)=>'<div class="dot" style="background:'+(i<results.length?(results[i]?'#10b981':'#ef4444'):i===current?'#a78bfa':'rgba(255,255,255,0.15)')+'"></div>').join('');
+  const pc=document.getElementById('prev-card');
+  if(current>0){pc.style.display='block';renderPrev();}else pc.style.display='none';
+  const isR=revealed||mode==='listen';
+  document.getElementById('cur-card').className='cur-card'+(isR?' revealed':'');
+  document.getElementById('cur-emoji').textContent=EMOJIS[current%EMOJIS.length];
+  const cc=document.getElementById('cur-content');
+  if(isR)cc.innerHTML='<div class="cur-text">'+LINES[current]+'</div>';
+  else cc.innerHTML='<div class="cur-blank">'+('● '.repeat(Math.min(8,Math.ceil(LINES[current].length/3))))+'</div><div class="cur-hint">다음 대사를 말해볼 수 있어? 🎭</div>';
+  renderBtns();
+}
+function renderBtns(){
+  if(!curScript)return;
+  let h='';
+  if(current>0)h+='<button class="btn btn-blue gap'+(pPlaying?' active':'')+'" onclick="pPlaying?stopPrev():playPrev()">'+(pPlaying?'⏹ 멈추기':'▶ 앞 대사 읽어주기 ('+current+'줄)')+'</button>';
+  if(mode==='listen')h+='<button class="btn btn-purple gap'+(ttsPlaying?' active':'')+'" onclick="speakCurrent()">'+(ttsPlaying?'⏹ 멈추기':'🔊 이 대사 읽어주기')+'</button>';
+  if(mode==='blank'&&!revealed)h+='<button class="btn btn-reveal gap" onclick="doReveal()">👁 대사 확인하기</button>';
+  if(revealed||mode==='listen')h+='<div class="row"><button class="btn btn-green" onclick="doResult(true)">✅ 외웠어!</button><button class="btn btn-red" onclick="doResult(false)">🔁 다시!</button></div>';
+  document.getElementById('btn-area').innerHTML=h;
+}
+function doReveal(){haptic('light');revealed=true;renderAll();}
+function doResult(ok){
+  if(!curScript)return;
+  haptic(ok?'success':'error');ttsStop();stopPrev();results.push(ok);
+  const next=current+1;
+  if(next>=curScript.lines.length)showDone();
+  else{current=next;revealed=false;renderAll();}
+}
+function showDone(){
+  show('done','연습 완료!','수고했어요 🎭',true);
+  const c=results.filter(Boolean).length,t=curScript.lines.length,p=Math.round((c/t)*100);
+  document.getElementById('done-trophy').textContent=c===t?'🏆':c>=t*.8?'⭐⭐⭐':c>=t*.6?'⭐⭐':'⭐';
+  document.getElementById('done-score').textContent=c+' / '+t;
+  document.getElementById('done-bar').style.width=p+'%';
+  document.getElementById('done-pct').textContent=p+'점!';
+  document.getElementById('result-list').innerHTML=curScript.lines.map((l,i)=>'<div class="result-item"><span>'+(results[i]?'✅':'❌')+'</span><span style="color:'+(results[i]?'#a7f3d0':'#fca5a5')+'">'+l+'</span></div>').join('');
+}
+
+// TTS 음성 로드
+if(window.speechSynthesis){window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();window.speechSynthesis.getVoices();}
+
+// 홈 렌더
+renderHome();
+show('home');
+</script>
+</body>
+</html>
