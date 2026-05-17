@@ -126,21 +126,38 @@ body{min-height:100vh;background:linear-gradient(160deg,#1a0533 0%,#0d1b4b 60%,#
     </div>
     <div class="grid" id="rs-grid"></div>
     <div id="rs-wrongwrap"></div>
-    <button class="btn btn-primary" onclick="reGrade()">📸 다른 답안지 채점</button>
+    <div class="field" style="margin-bottom:12px">
+      <label>학생 이름 / 번호</label>
+      <input id="rs-name" type="text" placeholder="예) 3번 김이나">
+    </div>
+    <button class="btn btn-green" onclick="saveRecord(true)">💾 저장하고 다음 학생 📸</button>
+    <button class="btn btn-primary gap" onclick="saveRecord(false)">💾 저장하고 기록 보기</button>
+    <button class="btn btn-dim gap" onclick="goHome()">기록 안 하고 나가기</button>
+  </div>
+
+  <div id="screen-records" style="display:none">
+    <div class="score-card" id="rec-summary" style="padding:18px"></div>
+    <div id="rec-listwrap"></div>
+    <button class="btn btn-dim" onclick="copyRecords()">📋 점수 복사 (엑셀 붙여넣기용)</button>
+    <button class="btn btn-green gap" onclick="startGrade(curWs.id)">📸 이어서 채점하기</button>
+    <button class="btn btn-dim gap" onclick="clearRecords()">이 학습지 기록 전체 삭제</button>
     <button class="btn btn-dim gap" onclick="goHome()">처음으로</button>
   </div>
 
 </div>
 <script>
 let worksheets = JSON.parse(localStorage.getItem('ws')||'[]');
+let records = JSON.parse(localStorage.getItem('records')||'{}');
 let endpoint = localStorage.getItem('gradeEndpoint')||'/api/grade';
-let curWs = null, keyBuf = [], curChoices = 5;
+let curWs = null, keyBuf = [], curChoices = 5, curResult = null;
 
 function saveWsList(){localStorage.setItem('ws',JSON.stringify(worksheets));}
+function saveRecords(){localStorage.setItem('records',JSON.stringify(records));}
+function recCount(id){return (records[id]||[]).length;}
 function haptic(t){if(!navigator.vibrate)return;navigator.vibrate(t==='ok'?[40,30,40]:t==='err'?[80,40,80]:40);}
 
 function show(s,title,sub,back){
-  ['home','register','grade','result'].forEach(x=>document.getElementById('screen-'+x).style.display='none');
+  ['home','register','grade','result','records'].forEach(x=>document.getElementById('screen-'+x).style.display='none');
   document.getElementById('screen-'+s).style.display='block';
   document.getElementById('h-title').textContent=title;
   document.getElementById('h-sub').textContent=sub;
@@ -156,13 +173,14 @@ function renderHome(){
     <div class="ws-item">
       <div class="ws-ic" onclick="startGrade('${w.id}')">📝</div>
       <div class="ws-meta" onclick="startGrade('${w.id}')">
-        <h3>${esc(w.name)}</h3><p>${w.answers.length}문항 · ${w.choices}지선다</p>
+        <h3>${esc(w.name)}</h3><p>${w.answers.length}문항 · ${w.choices}지선다 · 채점 ${recCount(w.id)}명</p>
       </div>
+      <button class="ws-del" style="background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.3);color:#93c5fd" onclick="openRecords('${w.id}',event)">기록</button>
       <button class="ws-del" onclick="delWs('${w.id}',event)">삭제</button>
     </div>`).join('');
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-function delWs(id,e){e.stopPropagation();if(!confirm('이 학습지를 삭제할까요?'))return;worksheets=worksheets.filter(w=>w.id!==id);saveWsList();renderHome();}
+function delWs(id,e){e.stopPropagation();if(!confirm('이 학습지를 삭제할까요? 채점 기록도 함께 삭제됩니다.'))return;worksheets=worksheets.filter(w=>w.id!==id);delete records[id];saveWsList();saveRecords();renderHome();}
 
 // ── 등록 ──
 function goRegister(){
@@ -215,7 +233,6 @@ function startGrade(id){
   document.getElementById('g-file').value='';
   show('grade',curWs.name,'답안지를 촬영하세요',true);
 }
-function reGrade(){startGrade(curWs.id);}
 
 function onPhoto(input){
   const file=input.files[0];if(!file)return;
@@ -284,8 +301,74 @@ function showResult(got){
       <div class="wrong-row"><span class="wq">${r.q}번</span>
       <span class="wa">학생 <s>${r.stu||'무응답'}</s> · 정답 <b>${r.ans}</b></span></div>`).join('')+'</div>';
   }else ww.innerHTML='<div style="text-align:center;opacity:.6;font-size:14px;margin-bottom:18px">🎯 전부 정답이에요!</div>';
+  curResult={correct,total:n,pct,wrong:rows.map(r=>r.q)};
+  document.getElementById('rs-name').value='';
   haptic('ok');
-  show('result',curWs.name,'채점 결과',true);
+  show('result',curWs.name,'학생 이름을 입력하고 저장하세요',true);
+  setTimeout(()=>document.getElementById('rs-name').focus(),200);
+}
+
+function saveRecord(next){
+  if(!curResult||!curWs)return;
+  let name=document.getElementById('rs-name').value.trim();
+  const list=records[curWs.id]||(records[curWs.id]=[]);
+  if(!name)name='학생 '+(list.length+1);
+  const d=new Date();
+  const pad=x=>String(x).padStart(2,'0');
+  const date=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  list.push({name,correct:curResult.correct,total:curResult.total,pct:curResult.pct,wrong:curResult.wrong,date});
+  saveRecords();haptic('ok');curResult=null;
+  if(next){startGrade(curWs.id);setTimeout(()=>document.getElementById('g-file').click(),250);}
+  else openRecords(curWs.id);
+}
+
+function openRecords(id,e){
+  if(e)e.stopPropagation();
+  curWs=worksheets.find(w=>w.id===id);if(!curWs)return;
+  renderRecords();
+  show('records',curWs.name,'채점 기록',true);
+}
+function renderRecords(){
+  const list=records[curWs.id]||[];
+  const sum=document.getElementById('rec-summary');
+  if(!list.length){
+    sum.innerHTML='<div style="opacity:.6;font-size:14px;padding:8px">아직 채점 기록이 없어요.</div>';
+    document.getElementById('rec-listwrap').innerHTML='';
+    return;
+  }
+  const avg=Math.round(list.reduce((a,r)=>a+r.pct,0)/list.length);
+  sum.innerHTML=`<div style="font-size:13px;opacity:.6;margin-bottom:6px">${list.length}명 채점 · 평균</div>
+    <div class="score-big" style="font-size:40px">${avg}점</div>`;
+  document.getElementById('rec-listwrap').innerHTML='<div class="wrong-list">'+list.map((r,i)=>`
+    <div class="wrong-row">
+      <span class="wq">${esc(r.name)}</span>
+      <span class="wa"><b>${r.pct}점</b> · ${r.correct}/${r.total}
+      <span style="opacity:.4;font-size:11px">&nbsp;${r.date.slice(5)}</span>
+      <span class="ws-del" style="padding:3px 8px;margin-left:8px" onclick="delRecord(${i})">×</span></span>
+    </div>`).join('')+'</div>';
+}
+function delRecord(i){
+  if(!confirm('이 기록을 삭제할까요?'))return;
+  records[curWs.id].splice(i,1);saveRecords();renderRecords();
+}
+function clearRecords(){
+  if(!confirm('이 학습지의 채점 기록을 전부 삭제할까요?'))return;
+  records[curWs.id]=[];saveRecords();renderRecords();
+}
+function copyRecords(){
+  const list=records[curWs.id]||[];
+  if(!list.length){alert('복사할 기록이 없어요.');return;}
+  const tsv='이름\t점수\t정답\t총문항\t오답문항\t채점일시\n'+
+    list.map(r=>`${r.name}\t${r.pct}\t${r.correct}\t${r.total}\t${(r.wrong||[]).join(' ')}\t${r.date}`).join('\n');
+  const done=()=>alert('복사됐어요! 엑셀/시트에 붙여넣으세요.');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(tsv).then(done,()=>fallbackCopy(tsv,done));
+  }else fallbackCopy(tsv,done);
+}
+function fallbackCopy(t,cb){
+  const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);
+  ta.select();try{document.execCommand('copy');cb();}catch(e){alert('복사 실패');}
+  document.body.removeChild(ta);
 }
 
 function setEndpoint(){
