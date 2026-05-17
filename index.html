@@ -92,6 +92,16 @@ body{min-height:100vh;background:linear-gradient(160deg,#1a0533 0%,#0d1b4b 60%,#
 .scan-name-input{width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:15px;font-family:inherit;outline:none}
 .scan-name-input:focus{border-color:rgba(167,139,250,.5)}
 .scan-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:12px;color:#fca5a5;font-size:13px;margin-bottom:14px;display:none}
+.sr-hint{opacity:.4;font-size:11px;margin:-4px 0 10px}
+.sr-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.sr-row:last-child{border-bottom:none}
+.sr-edit{flex:1;padding:8px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:13px;font-family:inherit;outline:none;line-height:1.5}
+.sr-edit:focus{border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.08)}
+.sr-x{background:rgba(239,68,68,.12);border:none;color:#fca5a5;width:30px;height:30px;border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0}
+.sr-x:active{transform:scale(.9)}
+.sr-add{background:rgba(167,139,250,.1);border:1px dashed rgba(167,139,250,.35)!important;color:#c4b5fd;border-radius:10px;padding:9px;font-size:13px;margin-top:10px}
+.confetti{position:fixed;top:-20px;width:10px;height:14px;z-index:50;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:.9}}
 
 /* 연습 화면 */
 .mode-wrap{margin-bottom:16px}
@@ -178,8 +188,10 @@ body{min-height:100vh;background:linear-gradient(160deg,#1a0533 0%,#0d1b4b 60%,#
       </div>
       <div class="scan-err" id="scan-err"></div>
       <div class="scan-result" id="scan-result">
-        <div class="sr-label">📋 인식된 대사 확인</div>
+        <div class="sr-label">📋 인식된 대사 (직접 고칠 수 있어요)</div>
+        <div class="sr-hint">잘못 읽힌 글자는 눌러서 수정하고, 필요 없는 줄은 ✕ 로 지우세요</div>
         <div id="sr-lines"></div>
+        <button class="btn sr-add" onclick="addScanLine()">＋ 줄 추가</button>
       </div>
       <div class="scan-name-wrap" id="scan-name-wrap">
         <div class="scan-name-label">대본 이름을 입력하세요</div>
@@ -381,8 +393,7 @@ function onFile(input){
       scannedLines=lines;
       document.getElementById('scan-loading').style.display='none';
       if(!lines.length)throw new Error('대사를 찾지 못했어요. 더 선명하게 찍어보세요!');
-      // 결과 표시
-      document.getElementById('sr-lines').innerHTML=lines.map((l,i)=>`<div class="sr-line"><span class="sr-num">${i+1}</span><span>${l}</span></div>`).join('');
+      renderScanLines();
       document.getElementById('scan-result').style.display='block';
       document.getElementById('scan-name-wrap').style.display='block';
       document.getElementById('scan-name').value='';
@@ -434,11 +445,28 @@ async function extractLines(b64,mime){
   return arr;
 }
 
+function escA(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderScanLines(){
+  document.getElementById('sr-lines').innerHTML=scannedLines.map((l,i)=>
+    `<div class="sr-row"><span class="sr-num">${i+1}</span><input class="sr-edit" value="${escA(l)}" oninput="editScanLine(${i},this.value)" placeholder="대사 입력"><button class="sr-x" onclick="delScanLine(${i})">✕</button></div>`).join('');
+}
+function editScanLine(i,v){scannedLines[i]=v;}
+function delScanLine(i){
+  haptic('light');scannedLines.splice(i,1);renderScanLines();
+  if(!scannedLines.length)document.getElementById('scan-name-wrap').style.display='none';
+}
+function addScanLine(){
+  haptic('light');scannedLines.push('');renderScanLines();
+  document.getElementById('scan-name-wrap').style.display='block';
+  const ins=document.querySelectorAll('#sr-lines .sr-edit');
+  if(ins.length)ins[ins.length-1].focus();
+}
 function saveScanned(){
-  if(!scannedLines.length){alert('대사가 없어요!');return;}
+  const lines=scannedLines.map(s=>(s||'').trim()).filter(Boolean);
+  if(!lines.length){haptic('error');alert('저장할 대사가 없어요. 한 줄 이상 입력해주세요!');return;}
   const name=document.getElementById('scan-name').value.trim()||('대본 '+(scripts.length+1));
   const id='s_'+Date.now();
-  scripts.push({id,name,lines:scannedLines});
+  scripts.push({id,name,lines});
   saveScripts();haptic('success');
   curScript=scripts.find(s=>s.id===id);
   renderSetup();
@@ -568,6 +596,21 @@ function showDone(){
   document.getElementById('done-bar').style.width=p+'%';
   document.getElementById('done-pct').textContent=p+'점!';
   document.getElementById('result-list').innerHTML=curScript.lines.map((l,i)=>'<div class="result-item"><span>'+(results[i]?'✅':'❌')+'</span><span style="color:'+(results[i]?'#a7f3d0':'#fca5a5')+'">'+l+'</span></div>').join('');
+  if(c===t){haptic('success');launchConfetti();}
+}
+function launchConfetti(){
+  const colors=['#a78bfa','#60a5fa','#10b981','#fbbf24','#f472b6','#34d399'];
+  for(let i=0;i<60;i++){
+    const c=document.createElement('div');
+    c.className='confetti';
+    c.style.left=Math.random()*100+'vw';
+    c.style.background=colors[i%colors.length];
+    c.style.animationDuration=(2.2+Math.random()*1.8)+'s';
+    c.style.animationDelay=(Math.random()*0.5)+'s';
+    if(Math.random()>0.5)c.style.borderRadius='50%';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),4800);
+  }
 }
 
 // TTS 음성 로드
