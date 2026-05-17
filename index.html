@@ -121,6 +121,7 @@ body{min-height:100vh;background:linear-gradient(160deg,#1a0533 0%,#0d1b4b 60%,#
     <h1 id="header-title">대사 연습</h1>
     <p id="header-sub">대본을 찍어서 연습해요</p>
   </div>
+  <button class="btn btn-reset" id="btn-settings" style="display:none" onclick="goSettings()">⚙️ 설정</button>
   <button class="btn btn-reset" id="btn-back" style="display:none" onclick="goBack()">← 뒤로</button>
 </div>
 
@@ -137,6 +138,27 @@ body{min-height:100vh;background:linear-gradient(160deg,#1a0533 0%,#0d1b4b 60%,#
         <div class="sb-title">새 대본 추가</div>
         <div class="sb-desc">사진 찍으면 AI가 대사를 읽어드려요</div>
       </button>
+    </div>
+  </div>
+
+  <!-- ── SETTINGS ── -->
+  <div id="screen-settings" style="display:none">
+    <div class="home-wrap">
+      <div class="home-title">⚙️ AI 설정</div>
+      <div class="home-sub">사진에서 대사를 자동으로 읽어주려면 키가 필요해요</div>
+      <div style="background:rgba(255,255,255,.05);border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid rgba(255,255,255,.08)">
+        <div class="scan-name-label">Anthropic API 키</div>
+        <input class="scan-name-input" id="set-key" type="password" placeholder="sk-ant-..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div style="font-size:11px;opacity:.45;margin-top:8px;line-height:1.6">🔒 키는 이 기기에만 저장돼요. 서버로 전송하지 않습니다.</div>
+      </div>
+      <div class="scan-err" id="set-err"></div>
+      <div style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:14px;margin-bottom:16px;font-size:12px;line-height:1.7;opacity:.8">
+        💡 키 발급 방법<br>
+        1. <b>console.anthropic.com</b> 접속 후 로그인<br>
+        2. 왼쪽 메뉴 <b>API Keys</b> → <b>Create Key</b><br>
+        3. 생성된 <b>sk-ant-</b> 로 시작하는 키를 복사해 위에 붙여넣기
+      </div>
+      <button class="btn btn-primary" onclick="saveKey()">💾 저장하기</button>
     </div>
   </div>
 
@@ -241,7 +263,7 @@ const EMOJIS=["😔","😟","🐻","🙈","😲","🦒","😱","😰","🍬","�
 let scripts = JSON.parse(localStorage.getItem('scripts')||'[]');
 // 기본 대본 (이나꺼)
 if(!scripts.find(s=>s.id==='default')){
-  scripts.unshift({id:'default',name:'이나 - 엄마 꿈 이야기',lines:["엄마 미안해..","엄마 말을 안들어서 나쁜 꿈을 꾼 것 같아","날개 달린 곰이 사탕을 줬는데","못먹게 할까봐 엄마한테 비밀로 하고 숨겼어","그러더니 사탕이 곰만큼 커지고","기린만큼 길어지고 공룡만큼 커졌어!","도망가려고 했는데 몸이 안 움직였어!","무서워서 엄마!!�마!! 하고 불렀더니 깼어","앞으로는 사탕 안먹을래. 사탕 싫어!","이제부터는 과자만 먹을거야!"]});
+  scripts.unshift({id:'default',name:'이나 - 엄마 꿈 이야기',lines:["엄마 미안해..","엄마 말을 안들어서 나쁜 꿈을 꾼 것 같아","날개 달린 곰이 사탕을 줬는데","못먹게 할까봐 엄마한테 비밀로 하고 숨겼어","그러더니 사탕이 곰만큼 커지고","기린만큼 길어지고 공룡만큼 커졌어!","도망가려고 했는데 몸이 안 움직였어!","무서워서 엄마!! 엄마!! 하고 불렀더니 깼어","앞으로는 사탕 안먹을래. 사탕 싫어!","이제부터는 과자만 먹을거야!"]});
   saveScripts();
 }
 
@@ -251,15 +273,35 @@ let ttsPlaying=false,curAudio=null;
 let scannedLines=[], scanImgB64=null, scanMime=null;
 
 function saveScripts(){localStorage.setItem('scripts',JSON.stringify(scripts));}
+function getKey(){return (localStorage.getItem('anthropic_key')||'').trim();}
+
+// ── SETTINGS ──
+function goSettings(fromScan){
+  haptic('medium');
+  document.getElementById('set-key').value=getKey();
+  document.getElementById('set-err').style.display='none';
+  show('settings',fromScan?'AI 키 먼저 설정':'AI 설정',
+       fromScan?'키를 넣어야 사진 스캔이 돼요':'사진 스캔에 쓰는 키예요',true);
+}
+function saveKey(){
+  const k=document.getElementById('set-key').value.trim();
+  const err=document.getElementById('set-err');
+  if(!k){err.textContent='❌ 키를 입력해주세요';err.style.display='block';haptic('error');return;}
+  if(!k.startsWith('sk-ant-')){err.textContent='❌ Anthropic 키는 sk-ant- 로 시작해요. 다시 확인해주세요.';err.style.display='block';haptic('error');return;}
+  localStorage.setItem('anthropic_key',k);
+  haptic('success');
+  goHome();
+}
 function haptic(t){if(!navigator.vibrate)return;if(t==='light')navigator.vibrate(30);else if(t==='medium')navigator.vibrate(60);else if(t==='success')navigator.vibrate([40,30,40]);else if(t==='error')navigator.vibrate([80,40,80]);}
 
 // ── 화면 전환 ──
 function show(s,title,sub,backBtn){
-  ['home','scan','setup','practice','done'].forEach(x=>document.getElementById('screen-'+x).style.display='none');
+  ['home','settings','scan','setup','practice','done'].forEach(x=>document.getElementById('screen-'+x).style.display='none');
   document.getElementById('screen-'+s).style.display='block';
   document.getElementById('header-title').textContent=title||'대사 연습';
   document.getElementById('header-sub').textContent=sub||'대본을 찍어서 연습해요';
   document.getElementById('btn-back').style.display=backBtn?'block':'none';
+  document.getElementById('btn-settings').style.display=(s==='home')?'block':'none';
 }
 
 function goBack(){
@@ -306,6 +348,7 @@ function delScript(id){
 
 function goScan(){
   haptic('medium');
+  if(!getKey()){goSettings(true);return;}
   scannedLines=[];scanImgB64=null;scanMime=null;
   document.getElementById('scan-preview').style.display='none';
   document.getElementById('scan-placeholder').style.display='block';
@@ -357,20 +400,32 @@ function onFile(input){
 }
 
 async function extractLines(b64,mime){
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':'','anthropic-version':'2023-06-01'},
-    body:JSON.stringify({
-      model:'claude-opus-4-5',
-      max_tokens:1000,
-      system:'You are a script parser. Extract ALL dialogue lines from the image as a JSON array of strings. Return ONLY the JSON array, no markdown, no explanation. Example: ["첫번째 대사","두번째 대사"]',
-      messages:[{role:'user',content:[
-        {type:'image',source:{type:'base64',media_type:mime,data:b64}},
-        {type:'text',text:'이 대본 이미지에서 대사를 모두 추출해서 JSON 배열로만 응답하세요.'}
-      ]}]
-    })
-  });
-  if(!res.ok)throw new Error('AI 오류 '+res.status);
+  const key=getKey();
+  if(!key)throw new Error('AI 키가 없어요. ⚙️ 설정에서 키를 먼저 입력해주세요.');
+  let res;
+  try{
+    res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:2000,
+        system:'You are a script parser. Extract ALL dialogue lines from the image as a JSON array of strings. Return ONLY the JSON array, no markdown, no explanation. Example: ["첫번째 대사","두번째 대사"]',
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:mime,data:b64}},
+          {type:'text',text:'이 대본 이미지에서 대사를 모두 추출해서 JSON 배열로만 응답하세요.'}
+        ]}]
+      })
+    });
+  }catch(e){throw new Error('네트워크 연결을 확인해주세요.');}
+  if(res.status===401)throw new Error('AI 키가 올바르지 않아요. ⚙️ 설정에서 키를 다시 확인해주세요.');
+  if(res.status===429)throw new Error('요청이 많아요. 잠시 후 다시 시도해주세요.');
+  if(!res.ok)throw new Error('AI 오류 '+res.status+' — 잠시 후 다시 시도해주세요.');
   const data=await res.json();
   const text=data.content?.find(b=>b.type==='text')?.text||'[]';
   const clean=text.replace(/```json|```/g,'').trim();
