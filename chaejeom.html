@@ -97,9 +97,14 @@ body{min-height:100vh;background:linear-gradient(160deg,#1a0533 0%,#0d1b4b 60%,#
       <label>보기 개수 (몇 지선다)</label>
       <input id="r-choices" type="number" inputmode="numeric" min="2" max="5" value="5">
     </div>
-    <button class="btn btn-dim" onclick="buildKey()">정답 입력표 만들기 ↓</button>
+    <button class="btn btn-green" onclick="keyByPhoto()">📸 정답지 사진으로 자동 입력</button>
+    <div style="text-align:center;font-size:12px;opacity:.4;margin:10px 0">— 또는 —</div>
+    <button class="btn btn-dim" onclick="buildKey()">정답 직접 입력하기 ↓</button>
+    <input type="file" id="k-file" accept="image/*" capture="environment" style="display:none" onchange="onKeyPhoto(this)">
+    <div class="loading" id="k-load" style="display:none"><div class="spin"></div><p style="opacity:.6;font-size:13px">정답지를 읽는 중...</p></div>
+    <div class="err" id="k-err" style="display:none;margin-top:14px"></div>
     <div id="r-keywrap" style="display:none;margin-top:18px">
-      <label style="display:block;font-size:13px;font-weight:700;opacity:.7;margin-bottom:10px">각 문항 정답을 선택하세요</label>
+      <label style="display:block;font-size:13px;font-weight:700;opacity:.7;margin-bottom:10px">각 문항 정답을 확인하세요 (잘못 읽힌 항목은 탭해서 수정)</label>
       <div class="akey" id="r-akey"></div>
       <button class="btn btn-green" onclick="saveWs()">✅ 저장하기</button>
     </div>
@@ -188,23 +193,63 @@ function goRegister(){
   document.getElementById('r-num').value='';
   document.getElementById('r-choices').value='5';
   document.getElementById('r-keywrap').style.display='none';
-  show('register','새 학습지 등록','정답을 입력하세요',true);
+  document.getElementById('k-load').style.display='none';
+  document.getElementById('k-err').style.display='none';
+  show('register','새 학습지 등록','정답지 사진 또는 직접 입력',true);
 }
-function buildKey(){
+function validateNC(){
   const n=parseInt(document.getElementById('r-num').value);
   const c=parseInt(document.getElementById('r-choices').value);
-  if(!n||n<1||n>50){alert('문항 수를 1~50 사이로 입력하세요.');return;}
-  if(!c||c<2||c>5){alert('보기 개수를 2~5 사이로 입력하세요.');return;}
+  if(!n||n<1||n>50){alert('문항 수를 1~50 사이로 입력하세요.');return null;}
+  if(!c||c<2||c>5){alert('보기 개수를 2~5 사이로 입력하세요.');return null;}
+  return {n,c};
+}
+function renderKeyGrid(n,c){
   curChoices=c;keyBuf=new Array(n).fill(0);
-  const wrap=document.getElementById('r-akey');
   let h='';
   for(let i=0;i<n;i++){
     h+=`<div class="aq"><div class="qn">${i+1}번</div><div class="opts">`;
     for(let o=1;o<=c;o++)h+=`<div class="opt" id="o-${i}-${o}" onclick="pick(${i},${o})">${o}</div>`;
     h+='</div></div>';
   }
-  wrap.innerHTML=h;
+  document.getElementById('r-akey').innerHTML=h;
   document.getElementById('r-keywrap').style.display='block';
+}
+function buildKey(){
+  const v=validateNC();if(!v)return;
+  renderKeyGrid(v.n,v.c);
+}
+function keyByPhoto(){
+  const v=validateNC();if(!v)return;
+  document.getElementById('k-file').value='';
+  document.getElementById('k-file').click();
+}
+function onKeyPhoto(input){
+  const file=input.files[0];if(!file)return;
+  const v=validateNC();if(!v)return;
+  document.getElementById('k-load').style.display='block';
+  document.getElementById('k-err').style.display='none';
+  document.getElementById('r-keywrap').style.display='none';
+  toJpegB64(file,async dataUrl=>{
+    try{
+      const ans=await callProxy(dataUrl.split(',')[1],v.n,'key');
+      document.getElementById('k-load').style.display='none';
+      renderKeyGrid(v.n,v.c);
+      let read=0;
+      for(let i=0;i<v.n;i++){
+        const a=ans[i];
+        if(a>=1&&a<=v.c){pick(i,a);read++;}
+      }
+      window.scrollTo(0,document.body.scrollHeight);
+      alert(read===v.n
+        ? `정답 ${v.n}개를 모두 읽었어요. 확인 후 저장하세요.`
+        : `정답 ${read}/${v.n}개를 읽었어요. 못 읽은 문항은 직접 탭해서 채워주세요.`);
+    }catch(err){
+      document.getElementById('k-load').style.display='none';
+      const el=document.getElementById('k-err');
+      el.textContent='❌ '+err.message+' — 직접 입력해 주세요.';el.style.display='block';
+    }
+  });
 }
 function pick(i,o){
   keyBuf[i]=o;haptic('tap');
@@ -234,8 +279,7 @@ function startGrade(id){
   show('grade',curWs.name,'답안지를 촬영하세요',true);
 }
 
-function onPhoto(input){
-  const file=input.files[0];if(!file)return;
+function toJpegB64(file,cb){
   const reader=new FileReader();
   reader.onload=e=>{
     const img=new Image();
@@ -244,15 +288,31 @@ function onPhoto(input){
       if(w>max||h>max){const r=Math.min(max/w,max/h);w=Math.round(w*r);h=Math.round(h*r);}
       const cv=document.createElement('canvas');cv.width=w;cv.height=h;
       cv.getContext('2d').drawImage(img,0,0,w,h);
-      const dataUrl=cv.toDataURL('image/jpeg',0.72);
-      document.getElementById('g-prev').src=dataUrl;
-      document.getElementById('g-prev').style.display='block';
-      document.getElementById('g-box').style.display='none';
-      grade(dataUrl.split(',')[1]);
+      cb(cv.toDataURL('image/jpeg',0.72));
     };
     img.src=e.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+async function callProxy(b64,numQuestions,mode){
+  const res=await fetch(endpoint,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({image:b64,mime:'image/jpeg',numQuestions,mode})
+  });
+  const data=await res.json();
+  if(!res.ok)throw new Error(data.error||('서버 오류 '+res.status));
+  return data.answers||[];
+}
+
+function onPhoto(input){
+  const file=input.files[0];if(!file)return;
+  toJpegB64(file,dataUrl=>{
+    document.getElementById('g-prev').src=dataUrl;
+    document.getElementById('g-prev').style.display='block';
+    document.getElementById('g-box').style.display='none';
+    grade(dataUrl.split(',')[1]);
+  });
 }
 
 async function grade(b64){
@@ -260,13 +320,7 @@ async function grade(b64){
   document.getElementById('g-err').style.display='none';
   document.getElementById('g-btns').innerHTML='';
   try{
-    const res=await fetch(endpoint,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({image:b64,mime:'image/jpeg',numQuestions:curWs.answers.length})
-    });
-    const data=await res.json();
-    if(!res.ok)throw new Error(data.error||('서버 오류 '+res.status));
-    let got=data.answers||[];
+    const got=await callProxy(b64,curWs.answers.length,'student');
     document.getElementById('g-load').style.display='none';
     showResult(got);
   }catch(err){

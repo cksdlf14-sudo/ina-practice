@@ -16,20 +16,31 @@ export default async function handler(req, res) {
   if (typeof body === 'string') {
     try { body = JSON.parse(body); } catch { return res.status(400).json({ error: 'JSON 파싱 실패' }); }
   }
-  const { image, mime, numQuestions } = body || {};
+  const { image, mime, numQuestions, mode } = body || {};
   if (!image || !numQuestions) {
     return res.status(400).json({ error: 'image 와 numQuestions 가 필요합니다.' });
   }
 
-  const system =
-    'You are an exam answer-sheet reader for multiple-choice worksheets. ' +
-    'The image is a worksheet a student has already filled in. ' +
-    'For each question from 1 to ' + numQuestions + ', determine which single option ' +
-    'the student selected (the circled, checked, ticked, or filled-in choice). ' +
-    'Options are numbered 1,2,3,4,5 (or marked ①②③④⑤). ' +
-    'Return ONLY a JSON array of exactly ' + numQuestions + ' integers, one per question in order. ' +
-    'Use the option number the student chose. If a question is blank or you genuinely cannot tell, use 0. ' +
-    'No markdown, no explanation. Example: [3,1,4,2,5]';
+  const system = mode === 'key'
+    ? 'You are reading the ANSWER KEY for a multiple-choice worksheet. ' +
+      'The image may be a printed answer list (e.g. "1. ③  2. ①  3. ④"), a table of correct ' +
+      'answers, or a teacher\'s marked master sheet. ' +
+      'For each question from 1 to ' + numQuestions + ', determine the CORRECT option number. ' +
+      'Options are numbered 1,2,3,4,5 (or ①②③④⑤). ' +
+      'Return ONLY a JSON array of exactly ' + numQuestions + ' integers, one per question in order. ' +
+      'If a question is missing or unreadable, use 0. No markdown, no explanation. Example: [3,1,4,2,5]'
+    : 'You are an exam answer-sheet reader for multiple-choice worksheets. ' +
+      'The image is a worksheet a student has already filled in. ' +
+      'For each question from 1 to ' + numQuestions + ', determine which single option ' +
+      'the student selected (the circled, checked, ticked, or filled-in choice). ' +
+      'Options are numbered 1,2,3,4,5 (or marked ①②③④⑤). ' +
+      'Return ONLY a JSON array of exactly ' + numQuestions + ' integers, one per question in order. ' +
+      'Use the option number the student chose. If a question is blank or you genuinely cannot tell, use 0. ' +
+      'No markdown, no explanation. Example: [3,1,4,2,5]';
+
+  const userText = mode === 'key'
+    ? '이 정답지 이미지에서 1번부터 ' + numQuestions + '번까지 정답을 순서대로 JSON 배열로만 답하세요.'
+    : '이 학습지 사진에서 학생이 각 문항에 표시한 답을 1번부터 ' + numQuestions + '번까지 순서대로 JSON 배열로만 답하세요.';
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
@@ -47,7 +58,7 @@ export default async function handler(req, res) {
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: mime || 'image/jpeg', data: image } },
-            { type: 'text', text: '이 학습지 사진에서 학생이 각 문항에 표시한 답을 1번부터 ' + numQuestions + '번까지 순서대로 JSON 배열로만 답하세요.' },
+            { type: 'text', text: userText },
           ],
         }],
       }),
