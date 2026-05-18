@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a2a1a">
+<title>한 문장 영어 — 친구가 고쳐줌</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;background:linear-gradient(160deg,#0a2a1a 0%,#0d1b4b 60%,#1a0533 100%);font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;color:#fff;display:flex;flex-direction:column;align-items:center}
+#main{width:100%;max-width:460px;padding:30px 18px 80px;flex:1}
+.title{font-size:22px;font-weight:900;line-height:1.4;margin-bottom:6px}
+.sub{opacity:.55;font-size:13px;line-height:1.7;margin-bottom:24px}
+label{display:block;font-size:13px;font-weight:700;opacity:.7;margin-bottom:7px}
+textarea,input{width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;font-family:inherit;font-size:16px;resize:none}
+textarea:focus,input:focus{outline:none;border-color:rgba(110,231,183,.55)}
+.gap{margin-top:14px}
+.btn{display:block;width:100%;padding:16px;border:none;border-radius:12px;font-family:inherit;font-size:17px;font-weight:900;color:#062;background:linear-gradient(135deg,#6ee7b7,#34d399);box-shadow:0 4px 20px rgba(52,211,153,.3);cursor:pointer;margin-top:18px;transition:transform .08s,opacity .08s}
+.btn:active{transform:scale(.97);opacity:.85}
+.btn:disabled{opacity:.5}
+.loading{display:none;text-align:center;padding:30px 0}
+.spin{width:38px;height:38px;border:4px solid rgba(110,231,183,.2);border-top-color:#6ee7b7;border-radius:50%;margin:0 auto 12px;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.err{display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:12px;padding:14px;font-size:13px;margin-top:18px}
+.res{display:none;margin-top:22px}
+.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px;margin-bottom:12px}
+.card .lab{font-size:11px;opacity:.5;font-weight:700;margin-bottom:8px;letter-spacing:.5px}
+.natural{font-size:21px;font-weight:800;line-height:1.5;color:#a7f3d0}
+.okmark{font-size:12px;color:#6ee7b7;margin-top:8px;opacity:.8}
+.friend{font-size:15px;line-height:1.8;color:#e9d5ff}
+.note{font-size:13px;line-height:1.7;opacity:.55;margin-top:10px}
+.again{background:none;border:none;color:#6ee7b7;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;text-decoration:underline;width:100%;padding:10px}
+.foot{text-align:center;font-size:11px;opacity:.3;margin-top:30px;line-height:1.7}
+</style>
+</head>
+<body>
+<div id="main">
+  <div class="title">하고 싶은 말,<br>친구가 고쳐줄게.</div>
+  <div class="sub">시험용 영어 말고. 그냥 진짜로 하고 싶은 말 한 문장 던져봐.<br>틀려도 돼 — 채점 아니야.</div>
+
+  <div id="form">
+    <label>🇰🇷 / 🇺🇸 하고 싶은 말 (한국어로 써도 돼)</label>
+    <textarea id="said" rows="3" placeholder="예) 어제 그거 왜 그랬는지 물어보고 싶어 / I want to ask you about yesterday"></textarea>
+    <div class="gap">
+      <label>(선택) 무슨 뜻으로 말하려는 거야?</label>
+      <input id="meant" type="text" placeholder="예) 어제 걔가 화낸 이유가 궁금해서">
+    </div>
+    <button class="btn" id="go" onclick="ask()">친구한테 물어보기</button>
+  </div>
+
+  <div class="loading" id="load"><div class="spin"></div><p style="opacity:.6;font-size:13px">친구가 듣는 중...</p></div>
+  <div class="err" id="err"></div>
+
+  <div class="res" id="res">
+    <div class="card">
+      <div class="lab">이렇게 말하면 돼</div>
+      <div class="natural" id="r-nat"></div>
+      <div class="okmark" id="r-ok"></div>
+    </div>
+    <div class="card">
+      <div class="lab">친구가 한마디</div>
+      <div class="friend" id="r-fr"></div>
+      <div class="note" id="r-note"></div>
+    </div>
+    <button class="again" onclick="reset()">또 물어보기</button>
+  </div>
+
+  <div class="foot">가입 없음 · 채점 없음 · 그냥 한 문장</div>
+</div>
+<script>
+const endpoint = localStorage.getItem('coachEndpoint') || '/api/coach';
+
+async function ask(){
+  const said=document.getElementById('said').value.trim();
+  const meant=document.getElementById('meant').value.trim();
+  if(!said){document.getElementById('said').focus();return;}
+  document.getElementById('go').disabled=true;
+  document.getElementById('form').style.display='none';
+  document.getElementById('err').style.display='none';
+  document.getElementById('res').style.display='none';
+  document.getElementById('load').style.display='block';
+  try{
+    const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({said,meant})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||('서버 오류 '+r.status));
+    document.getElementById('load').style.display='none';
+    document.getElementById('r-nat').textContent=d.natural;
+    document.getElementById('r-ok').textContent=d.ok_to_say?'👍 사실 그냥 말해도 통해':'';
+    document.getElementById('r-fr').textContent=d.friend||'';
+    const note=document.getElementById('r-note');
+    note.textContent=d.note||''; note.style.display=d.note?'block':'none';
+    document.getElementById('res').style.display='block';
+  }catch(e){
+    document.getElementById('load').style.display='none';
+    const el=document.getElementById('err');
+    el.textContent='❌ '+e.message; el.style.display='block';
+    document.getElementById('form').style.display='block';
+  }
+  document.getElementById('go').disabled=false;
+}
+function reset(){
+  document.getElementById('said').value='';
+  document.getElementById('meant').value='';
+  document.getElementById('res').style.display='none';
+  document.getElementById('form').style.display='block';
+  document.getElementById('said').focus();
+}
+</script>
+</body>
+</html>

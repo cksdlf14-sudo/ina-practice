@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="학습지 채점">
+<meta name="theme-color" content="#1a0533">
+<title>학습지 채점 ✅</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;background:linear-gradient(160deg,#1a0533 0%,#0d1b4b 60%,#0a2a1a 100%);font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;color:#fff;display:flex;flex-direction:column;align-items:center}
+#header{width:100%;padding:16px 20px 12px;background:rgba(255,255,255,0.04);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.htitle{flex:1}.htitle h1{font-size:17px;font-weight:900}.htitle p{font-size:11px;opacity:0.5;margin-top:2px}
+#main{width:100%;max-width:460px;padding:20px 18px 90px;flex:1}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;color:#fff;cursor:pointer;transition:transform .08s,opacity .08s;-webkit-user-select:none;user-select:none}
+.btn:active{transform:scale(.95);opacity:.8}
+.btn-primary{background:linear-gradient(135deg,#a78bfa,#60a5fa);box-shadow:0 4px 20px rgba(167,139,250,.35);font-size:18px;font-weight:900;padding:16px}
+.btn-green{background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 2px 14px rgba(16,185,129,.3);font-size:17px;font-weight:900;padding:16px}
+.btn-dim{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15)!important;color:#ccc}
+.btn-reset{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15)!important;color:#ccc;border-radius:20px;padding:5px 14px;font-size:12px;width:auto}
+.gap{margin-top:10px}
+.home-title{font-size:22px;font-weight:900;margin-bottom:4px}
+.home-sub{opacity:.5;font-size:13px;margin-bottom:22px}
+.ws-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.ws-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s}
+.ws-item:active{transform:scale(.98);background:rgba(255,255,255,.1)}
+.ws-ic{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#a78bfa,#60a5fa);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ws-meta{flex:1;min-width:0}.ws-meta h3{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ws-meta p{font-size:12px;opacity:.5;margin-top:3px}
+.ws-del{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:10px;padding:8px 11px;font-size:12px;cursor:pointer}
+.empty{text-align:center;padding:40px 20px;opacity:.4;font-size:14px;line-height:1.7}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:700;opacity:.7;margin-bottom:7px}
+.field input{width:100%;padding:13px;border-radius:11px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;font-family:inherit;font-size:15px}
+.field input:focus{outline:none;border-color:rgba(167,139,250,.6)}
+.akey{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px}
+.aq{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:8px 6px;text-align:center}
+.aq .qn{font-size:11px;opacity:.5;margin-bottom:6px}
+.aq .opts{display:flex;flex-wrap:wrap;gap:3px;justify-content:center}
+.opt{width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:#bbb;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.opt.sel{background:linear-gradient(135deg,#a78bfa,#60a5fa);color:#fff;border-color:transparent}
+.scan-box{border:2px dashed rgba(255,255,255,.22);border-radius:18px;padding:38px 20px;text-align:center;cursor:pointer;margin-bottom:16px;transition:border .2s}
+.scan-box:active{border-color:rgba(167,139,250,.5)}
+.scan-box .ic{font-size:40px;margin-bottom:10px}
+.scan-box p{opacity:.55;font-size:13px;line-height:1.6}
+.preview{width:100%;border-radius:14px;margin-bottom:14px;display:none;max-height:340px;object-fit:contain;background:rgba(0,0,0,.25)}
+.loading{display:none;text-align:center;padding:30px 0}
+.spin{width:40px;height:40px;border:4px solid rgba(167,139,250,.2);border-top-color:#a78bfa;border-radius:50%;margin:0 auto 14px;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.err{display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:12px;padding:14px;font-size:13px;line-height:1.6;margin-bottom:14px}
+.score-card{text-align:center;padding:26px 18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;margin-bottom:18px}
+.score-big{font-size:54px;font-weight:900;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
+.score-frac{font-size:15px;opacity:.6;margin-top:6px}
+.score-emoji{font-size:34px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px}
+.cell{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.cell .cn{font-size:10px;opacity:.55;font-weight:600}
+.cell.ok{background:rgba(16,185,129,.18);border:1px solid rgba(16,185,129,.4);color:#6ee7b7}
+.cell.no{background:rgba(239,68,68,.16);border:1px solid rgba(239,68,68,.4);color:#fca5a5}
+.wrong-list{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:6px 14px;margin-bottom:18px}
+.wrong-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
+.wrong-row:last-child{border-bottom:none}
+.wrong-row .wq{font-weight:800}
+.wrong-row .wa{opacity:.8}.wrong-row .wa b{color:#6ee7b7}.wrong-row .wa s{color:#fca5a5;opacity:.7}
+.tag{display:inline-block;font-size:11px;opacity:.5;margin-bottom:14px}
+.cfg{font-size:12px;opacity:.45;text-align:center;margin-top:24px;cursor:pointer;text-decoration:underline}
+</style>
+</head>
+<body>
+<div id="header">
+  <span style="font-size:22px">✅</span>
+  <div class="htitle"><h1 id="h-title">학습지 채점</h1><p id="h-sub">사진 찍으면 바로 채점</p></div>
+  <button class="btn btn-reset" id="btn-back" style="display:none" onclick="goHome()">← 처음</button>
+</div>
+<div id="main">
+
+  <div id="screen-home">
+    <div class="home-title">📚 내 학습지</div>
+    <div class="home-sub">정답을 등록해두면 사진 한 장으로 채점돼요</div>
+    <div class="ws-list" id="ws-list"></div>
+    <button class="btn btn-primary" onclick="goRegister()">＋ 새 학습지 등록</button>
+    <div class="cfg" onclick="setEndpoint()" id="cfg-link">⚙️ 서버 주소 설정</div>
+  </div>
+
+  <div id="screen-register" style="display:none">
+    <div class="field">
+      <label>학습지 이름</label>
+      <input id="r-name" type="text" placeholder="예) 5과 단어시험">
+    </div>
+    <div class="field">
+      <label>문항 수</label>
+      <input id="r-num" type="number" inputmode="numeric" min="1" max="50" placeholder="예) 10">
+    </div>
+    <div class="field">
+      <label>보기 개수 (몇 지선다)</label>
+      <input id="r-choices" type="number" inputmode="numeric" min="2" max="5" value="5">
+    </div>
+    <button class="btn btn-green" onclick="keyByPhoto()">📸 정답지 사진으로 자동 입력</button>
+    <div style="text-align:center;font-size:12px;opacity:.4;margin:10px 0">— 또는 —</div>
+    <button class="btn btn-dim" onclick="buildKey()">정답 직접 입력하기 ↓</button>
+    <input type="file" id="k-file" accept="image/*" capture="environment" style="display:none" onchange="onKeyPhoto(this)">
+    <div class="loading" id="k-load" style="display:none"><div class="spin"></div><p style="opacity:.6;font-size:13px">정답지를 읽는 중...</p></div>
+    <div class="err" id="k-err" style="display:none;margin-top:14px"></div>
+    <div id="r-keywrap" style="display:none;margin-top:18px">
+      <label style="display:block;font-size:13px;font-weight:700;opacity:.7;margin-bottom:10px">각 문항 정답을 확인하세요 (잘못 읽힌 항목은 탭해서 수정)</label>
+      <div class="akey" id="r-akey"></div>
+      <button class="btn btn-green" onclick="saveWs()">✅ 저장하기</button>
+    </div>
+  </div>
+
+  <div id="screen-grade" style="display:none">
+    <span class="tag" id="g-tag"></span>
+    <div class="scan-box" id="g-box" onclick="document.getElementById('g-file').click()">
+      <div class="ic">📸</div>
+      <p>다 푼 학습지를 촬영하거나<br>사진을 선택하세요</p>
+    </div>
+    <input type="file" id="g-file" accept="image/*" capture="environment" style="display:none" onchange="onPhoto(this)">
+    <img id="g-prev" class="preview">
+    <div class="loading" id="g-load"><div class="spin"></div><p style="opacity:.6;font-size:13px">AI가 채점하는 중...</p></div>
+    <div class="err" id="g-err"></div>
+    <div id="g-btns"></div>
+  </div>
+
+  <div id="screen-result" style="display:none">
+    <div class="score-card">
+      <div class="score-emoji" id="rs-emoji">🎉</div>
+      <div class="score-big" id="rs-score">0점</div>
+      <div class="score-frac" id="rs-frac"></div>
+    </div>
+    <div class="grid" id="rs-grid"></div>
+    <div id="rs-wrongwrap"></div>
+    <div class="field" style="margin-bottom:12px">
+      <label>학생 이름 / 번호</label>
+      <input id="rs-name" type="text" placeholder="예) 3번 김이나">
+    </div>
+    <button class="btn btn-green" onclick="saveRecord(true)">💾 저장하고 다음 학생 📸</button>
+    <button class="btn btn-primary gap" onclick="saveRecord(false)">💾 저장하고 기록 보기</button>
+    <button class="btn btn-dim gap" onclick="goHome()">기록 안 하고 나가기</button>
+  </div>
+
+  <div id="screen-records" style="display:none">
+    <div class="score-card" id="rec-summary" style="padding:18px"></div>
+    <div id="rec-listwrap"></div>
+    <button class="btn btn-dim" onclick="copyRecords()">📋 점수 복사 (엑셀 붙여넣기용)</button>
+    <button class="btn btn-green gap" onclick="startGrade(curWs.id)">📸 이어서 채점하기</button>
+    <button class="btn btn-dim gap" onclick="clearRecords()">이 학습지 기록 전체 삭제</button>
+    <button class="btn btn-dim gap" onclick="goHome()">처음으로</button>
+  </div>
+
+</div>
+<script>
+let worksheets = JSON.parse(localStorage.getItem('ws')||'[]');
+let records = JSON.parse(localStorage.getItem('records')||'{}');
+let endpoint = localStorage.getItem('gradeEndpoint')||'/api/grade';
+let curWs = null, keyBuf = [], curChoices = 5, curResult = null;
+
+function saveWsList(){localStorage.setItem('ws',JSON.stringify(worksheets));}
+function saveRecords(){localStorage.setItem('records',JSON.stringify(records));}
+function recCount(id){return (records[id]||[]).length;}
+function haptic(t){if(!navigator.vibrate)return;navigator.vibrate(t==='ok'?[40,30,40]:t==='err'?[80,40,80]:40);}
+
+function show(s,title,sub,back){
+  ['home','register','grade','result','records'].forEach(x=>document.getElementById('screen-'+x).style.display='none');
+  document.getElementById('screen-'+s).style.display='block';
+  document.getElementById('h-title').textContent=title;
+  document.getElementById('h-sub').textContent=sub;
+  document.getElementById('btn-back').style.display=back?'block':'none';
+  window.scrollTo(0,0);
+}
+function goHome(){renderHome();show('home','학습지 채점','사진 찍으면 바로 채점',false);}
+
+function renderHome(){
+  const el=document.getElementById('ws-list');
+  if(!worksheets.length){el.innerHTML='<div class="empty">아직 등록된 학습지가 없어요.<br>아래 버튼으로 정답을 등록해보세요!</div>';return;}
+  el.innerHTML=worksheets.map(w=>`
+    <div class="ws-item">
+      <div class="ws-ic" onclick="startGrade('${w.id}')">📝</div>
+      <div class="ws-meta" onclick="startGrade('${w.id}')">
+        <h3>${esc(w.name)}</h3><p>${w.answers.length}문항 · ${w.choices}지선다 · 채점 ${recCount(w.id)}명</p>
+      </div>
+      <button class="ws-del" style="background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.3);color:#93c5fd" onclick="openRecords('${w.id}',event)">기록</button>
+      <button class="ws-del" onclick="delWs('${w.id}',event)">삭제</button>
+    </div>`).join('');
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function delWs(id,e){e.stopPropagation();if(!confirm('이 학습지를 삭제할까요? 채점 기록도 함께 삭제됩니다.'))return;worksheets=worksheets.filter(w=>w.id!==id);delete records[id];saveWsList();saveRecords();renderHome();}
+
+// ── 등록 ──
+function goRegister(){
+  document.getElementById('r-name').value='';
+  document.getElementById('r-num').value='';
+  document.getElementById('r-choices').value='5';
+  document.getElementById('r-keywrap').style.display='none';
+  document.getElementById('k-load').style.display='none';
+  document.getElementById('k-err').style.display='none';
+  show('register','새 학습지 등록','정답지 사진 또는 직접 입력',true);
+}
+function validateNC(){
+  const n=parseInt(document.getElementById('r-num').value);
+  const c=parseInt(document.getElementById('r-choices').value);
+  if(!n||n<1||n>50){alert('문항 수를 1~50 사이로 입력하세요.');return null;}
+  if(!c||c<2||c>5){alert('보기 개수를 2~5 사이로 입력하세요.');return null;}
+  return {n,c};
+}
+function renderKeyGrid(n,c){
+  curChoices=c;keyBuf=new Array(n).fill(0);
+  let h='';
+  for(let i=0;i<n;i++){
+    h+=`<div class="aq"><div class="qn">${i+1}번</div><div class="opts">`;
+    for(let o=1;o<=c;o++)h+=`<div class="opt" id="o-${i}-${o}" onclick="pick(${i},${o})">${o}</div>`;
+    h+='</div></div>';
+  }
+  document.getElementById('r-akey').innerHTML=h;
+  document.getElementById('r-keywrap').style.display='block';
+}
+function buildKey(){
+  const v=validateNC();if(!v)return;
+  renderKeyGrid(v.n,v.c);
+}
+function keyByPhoto(){
+  const v=validateNC();if(!v)return;
+  document.getElementById('k-file').value='';
+  document.getElementById('k-file').click();
+}
+function onKeyPhoto(input){
+  const file=input.files[0];if(!file)return;
+  const v=validateNC();if(!v)return;
+  document.getElementById('k-load').style.display='block';
+  document.getElementById('k-err').style.display='none';
+  document.getElementById('r-keywrap').style.display='none';
+  toJpegB64(file,async dataUrl=>{
+    try{
+      const ans=await callProxy(dataUrl.split(',')[1],v.n,'key');
+      document.getElementById('k-load').style.display='none';
+      renderKeyGrid(v.n,v.c);
+      let read=0;
+      for(let i=0;i<v.n;i++){
+        const a=ans[i];
+        if(a>=1&&a<=v.c){pick(i,a);read++;}
+      }
+      window.scrollTo(0,document.body.scrollHeight);
+      alert(read===v.n
+        ? `정답 ${v.n}개를 모두 읽었어요. 확인 후 저장하세요.`
+        : `정답 ${read}/${v.n}개를 읽었어요. 못 읽은 문항은 직접 탭해서 채워주세요.`);
+    }catch(err){
+      document.getElementById('k-load').style.display='none';
+      const el=document.getElementById('k-err');
+      el.textContent='❌ '+err.message+' — 직접 입력해 주세요.';el.style.display='block';
+    }
+  });
+}
+function pick(i,o){
+  keyBuf[i]=o;haptic('tap');
+  for(let x=1;x<=curChoices;x++){
+    const el=document.getElementById(`o-${i}-${x}`);
+    if(el)el.className='opt'+(x===o?' sel':'');
+  }
+}
+function saveWs(){
+  const name=document.getElementById('r-name').value.trim();
+  if(!name){alert('학습지 이름을 입력하세요.');return;}
+  if(keyBuf.some(v=>!v)){alert('아직 정답을 선택하지 않은 문항이 있어요.');return;}
+  worksheets.push({id:'w_'+Date.now(),name,answers:keyBuf.slice(),choices:curChoices});
+  saveWsList();haptic('ok');goHome();
+}
+
+// ── 채점 ──
+function startGrade(id){
+  curWs=worksheets.find(w=>w.id===id);if(!curWs)return;
+  document.getElementById('g-tag').textContent=`${curWs.name} · ${curWs.answers.length}문항`;
+  document.getElementById('g-prev').style.display='none';
+  document.getElementById('g-box').style.display='block';
+  document.getElementById('g-err').style.display='none';
+  document.getElementById('g-load').style.display='none';
+  document.getElementById('g-btns').innerHTML='';
+  document.getElementById('g-file').value='';
+  show('grade',curWs.name,'답안지를 촬영하세요',true);
+}
+
+function toJpegB64(file,cb){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=1600;let{width:w,height:h}=img;
+      if(w>max||h>max){const r=Math.min(max/w,max/h);w=Math.round(w*r);h=Math.round(h*r);}
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      cb(cv.toDataURL('image/jpeg',0.72));
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function callProxy(b64,numQuestions,mode){
+  const res=await fetch(endpoint,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({image:b64,mime:'image/jpeg',numQuestions,mode})
+  });
+  const data=await res.json();
+  if(!res.ok)throw new Error(data.error||('서버 오류 '+res.status));
+  return data.answers||[];
+}
+
+function onPhoto(input){
+  const file=input.files[0];if(!file)return;
+  toJpegB64(file,dataUrl=>{
+    document.getElementById('g-prev').src=dataUrl;
+    document.getElementById('g-prev').style.display='block';
+    document.getElementById('g-box').style.display='none';
+    grade(dataUrl.split(',')[1]);
+  });
+}
+
+async function grade(b64){
+  document.getElementById('g-load').style.display='block';
+  document.getElementById('g-err').style.display='none';
+  document.getElementById('g-btns').innerHTML='';
+  try{
+    const got=await callProxy(b64,curWs.answers.length,'student');
+    document.getElementById('g-load').style.display='none';
+    showResult(got);
+  }catch(err){
+    document.getElementById('g-load').style.display='none';
+    const el=document.getElementById('g-err');
+    el.textContent='❌ '+err.message;el.style.display='block';
+    document.getElementById('g-btns').innerHTML='<button class="btn btn-dim" onclick="document.getElementById(\'g-file\').click()">📸 다시 찍기</button>';
+    haptic('err');
+  }
+}
+
+function showResult(got){
+  const key=curWs.answers, n=key.length;
+  let correct=0;const rows=[];
+  for(let i=0;i<n;i++){
+    const stu=got[i]||0, ok=stu===key[i];
+    if(ok)correct++; else rows.push({q:i+1,stu,ans:key[i]});
+  }
+  const pct=Math.round(correct/n*100);
+  document.getElementById('rs-score').textContent=pct+'점';
+  document.getElementById('rs-frac').textContent=`${n}문항 중 ${correct}개 정답`;
+  document.getElementById('rs-emoji').textContent=pct===100?'🏆':pct>=80?'🎉':pct>=60?'👍':'💪';
+  let g='';
+  for(let i=0;i<n;i++){
+    const ok=(got[i]||0)===key[i];
+    g+=`<div class="cell ${ok?'ok':'no'}"><span class="cn">${i+1}</span>${ok?'O':'X'}</div>`;
+  }
+  document.getElementById('rs-grid').innerHTML=g;
+  const ww=document.getElementById('rs-wrongwrap');
+  if(rows.length){
+    ww.innerHTML='<div class="wrong-list">'+rows.map(r=>`
+      <div class="wrong-row"><span class="wq">${r.q}번</span>
+      <span class="wa">학생 <s>${r.stu||'무응답'}</s> · 정답 <b>${r.ans}</b></span></div>`).join('')+'</div>';
+  }else ww.innerHTML='<div style="text-align:center;opacity:.6;font-size:14px;margin-bottom:18px">🎯 전부 정답이에요!</div>';
+  curResult={correct,total:n,pct,wrong:rows.map(r=>r.q)};
+  document.getElementById('rs-name').value='';
+  haptic('ok');
+  show('result',curWs.name,'학생 이름을 입력하고 저장하세요',true);
+  setTimeout(()=>document.getElementById('rs-name').focus(),200);
+}
+
+function saveRecord(next){
+  if(!curResult||!curWs)return;
+  let name=document.getElementById('rs-name').value.trim();
+  const list=records[curWs.id]||(records[curWs.id]=[]);
+  if(!name)name='학생 '+(list.length+1);
+  const d=new Date();
+  const pad=x=>String(x).padStart(2,'0');
+  const date=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  list.push({name,correct:curResult.correct,total:curResult.total,pct:curResult.pct,wrong:curResult.wrong,date});
+  saveRecords();haptic('ok');curResult=null;
+  if(next){startGrade(curWs.id);setTimeout(()=>document.getElementById('g-file').click(),250);}
+  else openRecords(curWs.id);
+}
+
+function openRecords(id,e){
+  if(e)e.stopPropagation();
+  curWs=worksheets.find(w=>w.id===id);if(!curWs)return;
+  renderRecords();
+  show('records',curWs.name,'채점 기록',true);
+}
+function renderRecords(){
+  const list=records[curWs.id]||[];
+  const sum=document.getElementById('rec-summary');
+  if(!list.length){
+    sum.innerHTML='<div style="opacity:.6;font-size:14px;padding:8px">아직 채점 기록이 없어요.</div>';
+    document.getElementById('rec-listwrap').innerHTML='';
+    return;
+  }
+  const avg=Math.round(list.reduce((a,r)=>a+r.pct,0)/list.length);
+  sum.innerHTML=`<div style="font-size:13px;opacity:.6;margin-bottom:6px">${list.length}명 채점 · 평균</div>
+    <div class="score-big" style="font-size:40px">${avg}점</div>`;
+  document.getElementById('rec-listwrap').innerHTML='<div class="wrong-list">'+list.map((r,i)=>`
+    <div class="wrong-row">
+      <span class="wq">${esc(r.name)}</span>
+      <span class="wa"><b>${r.pct}점</b> · ${r.correct}/${r.total}
+      <span style="opacity:.4;font-size:11px">&nbsp;${r.date.slice(5)}</span>
+      <span class="ws-del" style="padding:3px 8px;margin-left:8px" onclick="delRecord(${i})">×</span></span>
+    </div>`).join('')+'</div>';
+}
+function delRecord(i){
+  if(!confirm('이 기록을 삭제할까요?'))return;
+  records[curWs.id].splice(i,1);saveRecords();renderRecords();
+}
+function clearRecords(){
+  if(!confirm('이 학습지의 채점 기록을 전부 삭제할까요?'))return;
+  records[curWs.id]=[];saveRecords();renderRecords();
+}
+function copyRecords(){
+  const list=records[curWs.id]||[];
+  if(!list.length){alert('복사할 기록이 없어요.');return;}
+  const tsv='이름\t점수\t정답\t총문항\t오답문항\t채점일시\n'+
+    list.map(r=>`${r.name}\t${r.pct}\t${r.correct}\t${r.total}\t${(r.wrong||[]).join(' ')}\t${r.date}`).join('\n');
+  const done=()=>alert('복사됐어요! 엑셀/시트에 붙여넣으세요.');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(tsv).then(done,()=>fallbackCopy(tsv,done));
+  }else fallbackCopy(tsv,done);
+}
+function fallbackCopy(t,cb){
+  const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);
+  ta.select();try{document.execCommand('copy');cb();}catch(e){alert('복사 실패');}
+  document.body.removeChild(ta);
+}
+
+function setEndpoint(){
+  const v=prompt('채점 서버(프록시) 주소를 입력하세요.\n같은 사이트에 배포했다면 비워두세요 (기본: /api/grade)',endpoint);
+  if(v===null)return;
+  endpoint=v.trim()||'/api/grade';
+  localStorage.setItem('gradeEndpoint',endpoint);
+  alert('저장됨: '+endpoint);
+}
+
+goHome();
+</script>
+</body>
+</html>
