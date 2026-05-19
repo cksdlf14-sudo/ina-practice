@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a0533">
+<title>영어 문법 쉽게 배우기 📚</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:linear-gradient(160deg,#1a0533 0%,#0d1b4b 60%,#0a2a1a 100%);font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;color:#fff;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+#stage{width:100%;max-width:840px;height:100%;max-height:620px;position:relative;padding:18px}
+.slide{position:absolute;inset:18px;display:none;flex-direction:column;background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:36px 40px;overflow-y:auto;animation:pop .35s ease}
+.slide.on{display:flex}
+@keyframes pop{from{opacity:0;transform:scale(.97) translateY(8px)}to{opacity:1;transform:none}}
+
+h1{font-size:38px;font-weight:900;line-height:1.25;margin-bottom:10px;background:linear-gradient(135deg,#a78bfa,#60a5fa,#34d399);-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:27px;font-weight:900;margin-bottom:18px;display:flex;align-items:center;gap:12px}
+h2 .ic{font-size:30px}
+.sub{opacity:.55;font-size:15px;margin-bottom:8px}
+p{font-size:18px;line-height:1.85}
+.big{font-size:22px;line-height:1.9}
+ul{margin:6px 0 6px 4px;list-style:none}
+li{font-size:18px;line-height:1.95;padding-left:26px;position:relative}
+li::before{content:"✦";position:absolute;left:0;color:#a78bfa}
+
+.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px 20px;margin:10px 0}
+.ex{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.28);border-radius:14px;padding:14px 18px;margin:10px 0;font-size:19px;line-height:1.7}
+.ex .ko{display:block;opacity:.6;font-size:15px;margin-top:4px}
+.formula{background:rgba(167,139,250,.14);border:1px dashed rgba(167,139,250,.5);border-radius:16px;padding:18px;text-align:center;font-size:24px;font-weight:900;color:#e9d5ff;margin:14px 0;line-height:1.6}
+
+.tag{display:inline-block;border-radius:8px;padding:2px 10px;font-size:.92em;font-weight:900;margin:0 1px}
+.t-sub{background:rgba(96,165,250,.25);color:#bfdbfe}
+.t-verb{background:rgba(52,211,153,.22);color:#a7f3d0}
+.t-obj{background:rgba(251,191,36,.22);color:#fde68a}
+.t-be{background:rgba(244,114,182,.22);color:#fbcfe8}
+.t-pp{background:rgba(167,139,250,.28);color:#ddd6fe}
+
+.grid{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0}
+.gcard{flex:1;min-width:180px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 16px}
+.gcard h3{font-size:18px;margin-bottom:6px}
+.gcard p{font-size:15px;opacity:.8;line-height:1.6}
+
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:17px}
+th,td{border:1px solid rgba(255,255,255,.15);padding:9px 12px;text-align:center}
+th{background:rgba(167,139,250,.18);font-weight:900}
+td:first-child{color:#fde68a;font-weight:700}
+
+.menu{display:flex;flex-direction:column;gap:11px;margin-top:8px}
+.mi{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 18px;font-size:18px;font-weight:700}
+.mi .n{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#60a5fa);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;flex-shrink:0}
+
+.center{align-items:center;justify-content:center;text-align:center}
+.center .emoji{font-size:64px;margin-bottom:14px}
+.tip{margin-top:auto;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);border-radius:12px;padding:10px 16px;font-size:15px;color:#a7f3d0}
+.quiz-a{display:none;margin-top:10px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);border-radius:12px;padding:14px 18px;font-size:18px;color:#a7f3d0}
+.slide.show-a .quiz-a{display:block}
+
+#bar{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:16px;padding:14px;z-index:20}
+.nav{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;font-family:inherit;font-size:15px;font-weight:800;border-radius:30px;padding:9px 22px;cursor:pointer;transition:transform .08s,opacity .1s}
+.nav:active{transform:scale(.93)}
+.nav:disabled{opacity:.3}
+#count{font-size:14px;opacity:.6;font-variant-numeric:tabular-nums;min-width:54px;text-align:center}
+#dots{position:fixed;top:10px;left:0;right:0;display:flex;gap:5px;justify-content:center;flex-wrap:wrap;padding:0 20px;z-index:20}
+.d{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18);transition:all .25s}
+.d.on{background:linear-gradient(135deg,#a78bfa,#60a5fa);transform:scale(1.35)}
+.hint{position:fixed;bottom:60px;left:0;right:0;text-align:center;font-size:12px;opacity:.35}
+@media(max-width:600px){
+.slide{padding:24px 22px;inset:12px}
+h1{font-size:28px}h2{font-size:22px}p,li,.big{font-size:16px}
+.ex{font-size:16px}.formula{font-size:19px}table{font-size:14px}
+}
+</style>
+</head>
+<body>
+
+<div id="dots"></div>
+<div id="stage"></div>
+
+<div id="bar">
+  <button class="nav" id="prev">◀ 이전</button>
+  <span id="count"></span>
+  <button class="nav" id="next">다음 ▶</button>
+</div>
+<div class="hint">← → 키 또는 화면을 넘겨보세요 · 퀴즈는 [스페이스]로 정답 보기</div>
+
+<script>
+const slides = [
+/* 0 표지 */
+`<div class="slide center">
+  <div class="emoji">📚✨</div>
+  <h1>영어 문법<br>쉽게 배우기</h1>
+  <p class="sub" style="font-size:18px;margin-top:14px">be동사 과거 · 과거분사 · 능동태 · 수동태<br>전치사 · 관계대명사</p>
+  <p style="margin-top:22px;opacity:.7">초등학생도 한 번에 이해하는 문법 수업 🙌</p>
+</div>`,
+
+/* 1 목차 */
+`<div class="slide">
+  <h2><span class="ic">🗺️</span>오늘 배울 순서</h2>
+  <p class="sub">쉬운 것부터 차근차근! 앞에서 배운 게 뒤에서 또 나와요.</p>
+  <div class="menu">
+    <div class="mi"><span class="n">1</span>be동사 과거 (was / were)</div>
+    <div class="mi"><span class="n">2</span>과거분사 (p.p.) — 동사의 변신</div>
+    <div class="mi"><span class="n">3</span>능동태 — 내가 한다</div>
+    <div class="mi"><span class="n">4</span>수동태 — 당한다 (be + 과거분사)</div>
+    <div class="mi"><span class="n">5</span>전치사 — 위치·시간을 콕!</div>
+    <div class="mi"><span class="n">6</span>관계대명사 — 두 문장을 하나로</div>
+  </div>
+</div>`,
+
+/* 2 be동사 과거 개념 */
+`<div class="slide">
+  <h2><span class="ic">⏰</span>1. be동사 과거</h2>
+  <p class="big">be동사는 <b>"~이다 / ~있다"</b> 라는 뜻이에요.<br>지금이 아니라 <b>옛날(과거)</b> 이야기를 할 땐 모양이 바뀌어요!</p>
+  <div class="grid">
+    <div class="gcard"><h3>지금 (현재)</h3><p>am / is / are</p></div>
+    <div class="gcard"><h3>옛날 (과거)</h3><p>was / were</p></div>
+  </div>
+  <table>
+    <tr><th>주어</th><th>현재</th><th>과거</th></tr>
+    <tr><td>I</td><td>am</td><td>was</td></tr>
+    <tr><td>He / She / It</td><td>is</td><td>was</td></tr>
+    <tr><td>You / We / They</td><td>are</td><td>were</td></tr>
+  </table>
+  <div class="tip">💡 한 명·하나면 <b>was</b>, 여러 명이면 <b>were</b> 라고 외우면 쉬워요!</div>
+</div>`,
+
+/* 3 be동사 과거 예문 */
+`<div class="slide">
+  <h2><span class="ic">📝</span>be동사 과거 — 예문</h2>
+  <div class="ex">I <b>was</b> happy yesterday.<span class="ko">나는 어제 행복했어요.</span></div>
+  <div class="ex">She <b>was</b> at school.<span class="ko">그녀는 학교에 있었어요.</span></div>
+  <div class="ex">We <b>were</b> friends.<span class="ko">우리는 친구였어요.</span></div>
+  <div class="tip">💡 yesterday(어제), last week(지난주) 같은 말이 보이면 과거예요!</div>
+</div>`,
+
+/* 4 과거분사 개념 */
+`<div class="slide">
+  <h2><span class="ic">🦋</span>2. 과거분사 (p.p.)</h2>
+  <p class="big">동사가 <b>세 번째로 변신</b>한 모양이에요.<br>줄여서 <b>p.p.</b> 라고 불러요.</p>
+  <div class="formula">play → played → <span class="tag t-pp">played</span><br>eat → ate → <span class="tag t-pp">eaten</span></div>
+  <p>과거분사는 혼자 못 쓰고 친구가 필요해요.<br>👉 <b>have</b>와 함께, 또는 <b>be동사</b>와 함께 (수동태에서 곧 배워요!)</p>
+  <div class="tip">💡 동사 변신: ① 현재 → ② 과거 → ③ 과거분사(p.p.)</div>
+</div>`,
+
+/* 5 과거분사 표 */
+`<div class="slide">
+  <h2><span class="ic">📋</span>과거분사 표 — 외워두기</h2>
+  <p class="sub">규칙: 그냥 끝에 <b>-ed</b> 를 붙여요</p>
+  <table>
+    <tr><th>뜻</th><th>현재</th><th>과거</th><th>과거분사</th></tr>
+    <tr><td>놀다</td><td>play</td><td>played</td><td>played</td></tr>
+    <tr><td>좋아하다</td><td>like</td><td>liked</td><td>liked</td></tr>
+  </table>
+  <p class="sub" style="margin-top:12px">불규칙: 모양이 제멋대로! 그냥 외워요 😆</p>
+  <table>
+    <tr><th>뜻</th><th>현재</th><th>과거</th><th>과거분사</th></tr>
+    <tr><td>먹다</td><td>eat</td><td>ate</td><td>eaten</td></tr>
+    <tr><td>쓰다</td><td>write</td><td>wrote</td><td>written</td></tr>
+    <tr><td>주다</td><td>give</td><td>gave</td><td>given</td></tr>
+  </table>
+</div>`,
+
+/* 6 능동태 */
+`<div class="slide">
+  <h2><span class="ic">🏃</span>3. 능동태 — 내가 한다!</h2>
+  <p class="big"><b>주어가 직접 행동</b>을 할 때 쓰는 보통 문장이에요.</p>
+  <div class="formula"><span class="tag t-sub">주어</span> + <span class="tag t-verb">동사</span> + <span class="tag t-obj">목적어</span></div>
+  <div class="ex"><span class="tag t-sub">The cat</span> <span class="tag t-verb">eats</span> <span class="tag t-obj">the fish</span>.<span class="ko">고양이가 생선을 먹어요. (고양이가 직접 먹음!)</span></div>
+  <div class="ex"><span class="tag t-sub">Tom</span> <span class="tag t-verb">cleans</span> <span class="tag t-obj">the room</span>.<span class="ko">톰이 방을 청소해요.</span></div>
+  <div class="tip">💡 "누가 ~한다" → 행동의 주인공이 앞에 있어요.</div>
+</div>`,
+
+/* 7 수동태 개념 */
+`<div class="slide">
+  <h2><span class="ic">🎯</span>4. 수동태 — 당한다!</h2>
+  <p class="big">행동을 <b>받는 쪽</b>을 주인공으로 만들 때 써요.<br>"~되다 / ~당하다 / ~지다" 로 해석해요.</p>
+  <div class="formula"><span class="tag t-be">be동사</span> + <span class="tag t-pp">과거분사(p.p.)</span></div>
+  <div class="ex">The fish <b>is eaten</b> by the cat.<span class="ko">생선이 고양이에게 먹혀요. (생선이 주인공!)</span></div>
+  <div class="tip">💡 그래서 앞에서 <b>be동사</b>와 <b>과거분사</b>를 먼저 배운 거예요! 둘이 합쳐지면 수동태 😎</div>
+</div>`,
+
+/* 8 능동 → 수동 바꾸기 */
+`<div class="slide">
+  <h2><span class="ic">🔄</span>능동태 → 수동태 바꾸기</h2>
+  <p class="sub">3단계만 기억하세요!</p>
+  <ul>
+    <li><b>1단계:</b> 목적어를 맨 앞으로 (주인공 교체)</li>
+    <li><b>2단계:</b> 동사를 <span class="tag t-be">be동사</span> + <span class="tag t-pp">p.p.</span> 로</li>
+    <li><b>3단계:</b> 원래 주어 앞에 <b>by</b> 붙이기</li>
+  </ul>
+  <div class="ex"><b>능동:</b> <span class="tag t-sub">Tom</span> <span class="tag t-verb">cleans</span> <span class="tag t-obj">the room</span>.</div>
+  <div class="ex"><b>수동:</b> <span class="tag t-sub">The room</span> <span class="tag t-be">is</span> <span class="tag t-pp">cleaned</span> <b>by</b> Tom.<span class="ko">방이 톰에 의해 청소돼요.</span></div>
+</div>`,
+
+/* 9 전치사 장소 */
+`<div class="slide">
+  <h2><span class="ic">📍</span>5. 전치사 — 위치를 콕!</h2>
+  <p class="big">물건이나 사람이 <b>어디에</b> 있는지 알려주는 작은 말이에요.</p>
+  <div class="grid">
+    <div class="gcard"><h3>in 🏠</h3><p>~ 안에<br><i>in the box</i> (상자 안에)</p></div>
+    <div class="gcard"><h3>on 📖</h3><p>~ 위에 (붙어서)<br><i>on the desk</i> (책상 위에)</p></div>
+    <div class="gcard"><h3>under 🪑</h3><p>~ 아래에<br><i>under the bed</i> (침대 밑에)</p></div>
+    <div class="gcard"><h3>next to 👬</h3><p>~ 옆에<br><i>next to me</i> (내 옆에)</p></div>
+  </div>
+  <div class="tip">💡 전치사는 항상 <b>명사 앞</b>에 와요. (전치사 + 이름/사물)</div>
+</div>`,
+
+/* 10 전치사 시간 */
+`<div class="slide">
+  <h2><span class="ic">🕒</span>전치사 — 시간에도 써요</h2>
+  <table>
+    <tr><th>전치사</th><th>언제 쓰나</th><th>예시</th></tr>
+    <tr><td>at</td><td>정확한 시각</td><td>at 7 o'clock</td></tr>
+    <tr><td>on</td><td>요일·날짜</td><td>on Monday</td></tr>
+    <tr><td>in</td><td>월·년·계절</td><td>in May</td></tr>
+  </table>
+  <div class="ex">I get up <b>at</b> 7. I go to school <b>on</b> Monday.<span class="ko">나는 7시에 일어나요. 월요일에 학교에 가요.</span></div>
+  <div class="tip">💡 점(at) → 줄(on) → 큰 덩어리(in) 순서로 점점 커진다고 기억!</div>
+</div>`,
+
+/* 11 관계대명사 개념 */
+`<div class="slide">
+  <h2><span class="ic">🔗</span>6. 관계대명사</h2>
+  <p class="big">두 문장을 <b>하나로 이어주는</b> 연결고리예요.<br>같은 말이 반복될 때 한 번만 말하게 해줘요.</p>
+  <div class="card">
+    <p>① I have a friend.<br>② The friend likes soccer.</p>
+    <p style="margin-top:8px;color:#a7f3d0">⬇ 합치면</p>
+    <p>I have a friend <b>who</b> likes soccer.<br><span style="opacity:.6;font-size:15px">나는 축구를 좋아하는 친구가 있어요.</span></p>
+  </div>
+  <div class="tip">💡 사람이면 <b>who</b>, 사물이면 <b>which</b>, 둘 다 되면 <b>that</b></div>
+</div>`,
+
+/* 12 관계대명사 예문 */
+`<div class="slide">
+  <h2><span class="ic">✏️</span>관계대명사 — 예문</h2>
+  <div class="ex">The boy <b>who</b> is running is my brother.<span class="ko">뛰고 있는 그 소년은 내 동생이에요. (사람 → who)</span></div>
+  <div class="ex">This is the book <b>which</b> I like.<span class="ko">이것은 내가 좋아하는 책이에요. (사물 → which)</span></div>
+  <div class="ex">The dog <b>that</b> barks is big.<span class="ko">짖는 그 개는 커요. (that 은 둘 다 OK)</span></div>
+  <div class="tip">💡 관계대명사 뒤에는 설명하는 말이 졸졸 따라와요.</div>
+</div>`,
+
+/* 13 한눈에 정리 */
+`<div class="slide">
+  <h2><span class="ic">🧠</span>한눈에 정리</h2>
+  <table>
+    <tr><th>문법</th><th>핵심</th></tr>
+    <tr><td>be동사 과거</td><td>was (하나) / were (여럿)</td></tr>
+    <tr><td>과거분사</td><td>동사의 3번째 변신 (p.p.)</td></tr>
+    <tr><td>능동태</td><td>주어가 직접 한다</td></tr>
+    <tr><td>수동태</td><td>be동사 + 과거분사 (~되다)</td></tr>
+    <tr><td>전치사</td><td>in·on·at — 위치/시간</td></tr>
+    <tr><td>관계대명사</td><td>who·which·that — 문장 연결</td></tr>
+  </table>
+  <div class="tip">💡 수동태 = be동사 + 과거분사! 두 개를 먼저 배운 이유 기억나죠? 😄</div>
+</div>`,
+
+/* 14 퀴즈 */
+`<div class="slide">
+  <h2><span class="ic">🎮</span>퀴즈 타임!</h2>
+  <p class="big">아래 문장을 <b>수동태</b>로 바꿔보세요.</p>
+  <div class="ex">The cat <b>eats</b> the fish.<span class="ko">고양이가 생선을 먹어요.</span></div>
+  <p style="opacity:.6;margin-top:10px">🔑 힌트: 목적어 앞으로 → be + p.p. → by</p>
+  <div class="quiz-a">정답 ✅ &nbsp; The fish <b>is eaten by</b> the cat.<br><span style="opacity:.7;font-size:15px">생선이 고양이에게 먹혀요.</span></div>
+  <div class="tip">스페이스바 또는 화면을 한 번 더 눌러 정답을 확인하세요!</div>
+</div>`,
+
+/* 15 끝 */
+`<div class="slide center">
+  <div class="emoji">🎉👏</div>
+  <h1>참 잘했어요!</h1>
+  <p style="margin-top:18px;opacity:.8">오늘 문법 6가지를 모두 배웠어요.<br>천천히 여러 번 읽으면 머릿속에 쏙쏙! 💪</p>
+  <p class="sub" style="margin-top:20px">be동사 과거 · 과거분사 · 능동태 · 수동태 · 전치사 · 관계대명사</p>
+</div>`
+];
+
+const stage=document.getElementById('stage');
+const dots=document.getElementById('dots');
+stage.innerHTML=slides.join('');
+const els=[...stage.querySelectorAll('.slide')];
+els.forEach((_,i)=>{const d=document.createElement('div');d.className='d';dots.appendChild(d);});
+const dEls=[...dots.children];
+let i=0;
+
+function render(){
+  els.forEach((s,n)=>s.classList.toggle('on',n===i));
+  dEls.forEach((d,n)=>d.classList.toggle('on',n===i));
+  document.getElementById('count').textContent=(i+1)+' / '+els.length;
+  document.getElementById('prev').disabled=i===0;
+  document.getElementById('next').disabled=i===els.length-1;
+}
+function next(){
+  const cur=els[i];
+  if(cur.querySelector('.quiz-a')&&!cur.classList.contains('show-a')){cur.classList.add('show-a');return;}
+  if(i<els.length-1){i++;render();}
+}
+function prev(){if(i>0){i--;render();}}
+
+document.getElementById('next').onclick=next;
+document.getElementById('prev').onclick=prev;
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next();}
+  if(e.key==='ArrowLeft')prev();
+});
+let sx=0;
+stage.addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+stage.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-sx;
+  if(dx<-45)next(); else if(dx>45)prev();
+});
+render();
+</script>
+</body>
+</html>
